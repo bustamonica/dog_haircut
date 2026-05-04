@@ -1,0 +1,205 @@
+import { useState } from 'react'
+import { BackButton, Button, ScreenContainer, Scroll, TopBar } from '../components/ui'
+import { MorphVideo } from '../components/MorphVideo'
+import { DogPortrait } from '../components/DogPortrait'
+import { STYLES_BY_ID } from '../data/styles'
+import { back, navigate, toggleSave, useStore } from '../state/store'
+import { ShareSheet } from '../components/ShareSheet'
+
+export function Result() {
+  const activeId = useStore(s => s.activeGenerationId)
+  const generations = useStore(s => s.generations)
+  const isPro = useStore(s => s.isPro)
+  const freeGenUsed = useStore(s => s.freeGenUsed)
+  const dog = useStore(s => s.dog)
+  const gen = generations.find(g => g.id === activeId)
+  const [view, setView] = useState<'morph' | 'compare'>('morph')
+  const [showShare, setShowShare] = useState(false)
+
+  if (!gen) return null
+  const style = STYLES_BY_ID[gen.styleId]
+  const beforePhoto = gen.sourcePhoto
+
+  return (
+    <ScreenContainer>
+      <TopBar
+        title={dog?.name ?? 'Result'}
+        left={<BackButton onClick={() => back()} />}
+        right={
+          <button
+            onClick={() => navigate('settings')}
+            className="press flex items-center justify-center h-9 w-9 rounded-full hover:bg-ink/5"
+            aria-label="Settings"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <circle cx="9" cy="9" r="2.4" stroke="#1A1815" strokeWidth="1.5" />
+              <path d="M9 1.5v1.8M9 14.7v1.8M16.5 9h-1.8M3.3 9H1.5M14.3 3.7l-1.3 1.3M5 13l-1.3 1.3M14.3 14.3 13 13M5 5 3.7 3.7" stroke="#1A1815" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </button>
+        }
+      />
+
+      <Scroll className="px-5 pt-3 pb-24">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="font-display italic text-2xl tracking-tight">{style.name}</span>
+          {style.pro && <span className="chip chip-dark text-[10px] uppercase tracking-widest">pro</span>}
+        </div>
+        <p className="text-sm text-ink/65 leading-snug mb-4">{style.blurb}</p>
+
+        <div className="aspect-[4/5] w-full sticker mb-3 relative overflow-hidden rounded-3xl">
+          {view === 'morph' ? (
+            <MorphVideo
+              beforePhoto={beforePhoto}
+              style={style}
+              watermark={gen.watermarked}
+            />
+          ) : (
+            <CompareView beforePhoto={beforePhoto} style={style} watermark={gen.watermarked} />
+          )}
+        </div>
+
+        <div className="flex gap-2 mb-5">
+          <button
+            onClick={() => setView('morph')}
+            className={`press flex-1 h-10 text-xs font-medium rounded-full ${
+              view === 'morph' ? 'bg-ink text-cream' : 'bg-ink/5 text-ink'
+            }`}
+          >
+            Before / after video
+          </button>
+          <button
+            onClick={() => setView('compare')}
+            className={`press flex-1 h-10 text-xs font-medium rounded-full ${
+              view === 'compare' ? 'bg-ink text-cream' : 'bg-ink/5 text-ink'
+            }`}
+          >
+            Side-by-side
+          </button>
+        </div>
+
+        <div className="rounded-2xl border border-ink/10 bg-cream p-4 mb-4">
+          <p className="text-[11px] uppercase tracking-widest text-ink/45 mb-2">What you'll ask the groomer for</p>
+          <p className="text-sm leading-relaxed text-ink/85">{style.description}</p>
+          <details className="mt-3">
+            <summary className="text-xs text-ink/55 cursor-pointer">Show technical brief</summary>
+            <p className="mt-2 text-xs text-ink/70 font-mono leading-relaxed">
+              {style.groomerBrief}
+            </p>
+          </details>
+        </div>
+
+        {/* Quality micro-survey */}
+        <Survey />
+
+        {!isPro && (
+          <div className="mt-4 rounded-2xl bg-ink p-4 text-cream">
+            <div className="flex items-center justify-between mb-1">
+              <p className="font-display italic text-xl">Want to try another?</p>
+              <span className="chip text-[10px] uppercase tracking-widest" style={{ background: 'rgba(255,255,255,0.12)', color: '#FAF6EE' }}>pro</span>
+            </div>
+            <p className="text-xs text-cream/75 leading-relaxed mb-3">
+              Free is one auto-pick generation. Browse the library, save styles, drop the watermark — that's Pro.
+            </p>
+            <Button variant="pro" className="w-full" onClick={() => navigate('paywall')}>
+              See Pro — $4.99/mo
+            </Button>
+          </div>
+        )}
+      </Scroll>
+
+      {/* Sticky action bar */}
+      <div className="px-5 pb-6 pt-3 border-t border-ink/5 bg-cream flex gap-2">
+        <Button
+          variant={gen.savedToBoard ? 'primary' : 'secondary'}
+          className="flex-1"
+          onClick={() => {
+            if (!isPro && freeGenUsed) {
+              navigate('paywall')
+              return
+            }
+            toggleSave(gen.id)
+          }}
+        >
+          {gen.savedToBoard ? '✓ Saved' : 'Save to Board'}
+        </Button>
+        <Button
+          className="flex-1"
+          onClick={() => setShowShare(true)}
+        >
+          <ShareIcon /> Share
+        </Button>
+      </div>
+
+      {showShare && (
+        <ShareSheet
+          onClose={() => setShowShare(false)}
+          beforePhoto={beforePhoto}
+          style={style}
+          watermark={gen.watermarked}
+          dogName={dog?.name ?? 'My dog'}
+        />
+      )}
+    </ScreenContainer>
+  )
+}
+
+function Survey() {
+  const [picked, setPicked] = useState<'yes' | 'kinda' | 'no' | null>(null)
+  return (
+    <div className="rounded-2xl bg-cream border border-ink/5 p-4">
+      <p className="text-xs font-semibold tracking-tight mb-2">Looks like your dog?</p>
+      <div className="grid grid-cols-3 gap-2">
+        {(['yes', 'kinda', 'no'] as const).map(v => (
+          <button
+            key={v}
+            onClick={() => setPicked(v)}
+            className={`press h-10 rounded-full text-xs font-medium ${
+              picked === v ? 'bg-ink text-cream' : 'bg-ink/5 text-ink'
+            }`}
+          >
+            {v === 'yes' ? "That's him" : v === 'kinda' ? 'Kinda' : 'Not at all'}
+          </button>
+        ))}
+      </div>
+      {picked === 'no' && (
+        <p className="text-[11px] text-ink/55 mt-2">Logged. We'll regen with stricter identity preservation next time.</p>
+      )}
+    </div>
+  )
+}
+
+function CompareView({
+  beforePhoto,
+  style,
+  watermark,
+}: {
+  beforePhoto: string | null
+  style: import('../data/styles').Style
+  watermark: boolean
+}) {
+  return (
+    <div className="grid grid-rows-2 h-full">
+      <div className="relative overflow-hidden">
+        {beforePhoto ? (
+          <img src={beforePhoto} alt="Before" className="w-full h-full object-cover" />
+        ) : (
+          <DogPortrait baseline bgSeed={5} />
+        )}
+        <div className="absolute top-2 left-2 chip">before</div>
+      </div>
+      <div className="relative overflow-hidden border-t-2 border-cream">
+        <DogPortrait style={style} bgSeed={6} />
+        <div className="absolute top-2 right-2 chip chip-dark">{style.name}</div>
+        {watermark && <div className="watermark">made with coif</div>}
+      </div>
+    </div>
+  )
+}
+
+function ShareIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M8 1.5v8.5M5.5 4 8 1.5 10.5 4M3 8.5v4a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5v-4" stroke="#FAF6EE" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
