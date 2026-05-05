@@ -50,11 +50,17 @@ export function Result() {
           {view === 'morph' ? (
             <MorphVideo
               beforePhoto={beforePhoto}
+              afterUrl={gen.outputUrl}
               style={style}
               watermark={gen.watermarked}
             />
           ) : (
-            <CompareView beforePhoto={beforePhoto} style={style} watermark={gen.watermarked} />
+            <CompareView
+              beforePhoto={beforePhoto}
+              afterUrl={gen.outputUrl}
+              style={style}
+              watermark={gen.watermarked}
+            />
           )}
         </div>
 
@@ -169,10 +175,12 @@ function Survey() {
 
 function CompareView({
   beforePhoto,
+  afterUrl,
   style,
   watermark,
 }: {
   beforePhoto: string | null
+  afterUrl: string | null
   style: import('../data/styles').Style
   watermark: boolean
 }) {
@@ -187,7 +195,9 @@ function CompareView({
         <div className="absolute top-2 left-2 chip">before</div>
       </div>
       <div className="relative overflow-hidden border-t-2 border-cream">
-        {beforePhoto ? (
+        {afterUrl ? (
+          <img src={afterUrl} alt={`After: ${style.name}`} className="w-full h-full object-cover" />
+        ) : beforePhoto ? (
           <StyledPhoto src={beforePhoto} style={style} />
         ) : (
           <DogPortrait style={style} bgSeed={6} />

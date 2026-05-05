@@ -48,7 +48,9 @@ export function GroomerCard() {
                       <div className="absolute top-2 left-2 chip">before</div>
                     </div>
                     <div className="aspect-square overflow-hidden relative border-l-2 border-cream">
-                      {g.sourcePhoto ? (
+                      {g.outputUrl ? (
+                        <img src={g.outputUrl} alt={style.name} className="w-full h-full object-cover" />
+                      ) : g.sourcePhoto ? (
                         <StyledPhoto src={g.sourcePhoto} style={style} />
                       ) : (
                         <DogPortrait style={style} bgSeed={i + 13} />

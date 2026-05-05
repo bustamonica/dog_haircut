@@ -73,7 +73,9 @@ export function Profile() {
                   className="press text-left bg-cream rounded-2xl overflow-hidden sticker"
                 >
                   <div className="aspect-square overflow-hidden relative">
-                    {g.sourcePhoto ? (
+                    {g.outputUrl ? (
+                      <img src={g.outputUrl} alt={style.name} className="w-full h-full object-cover" />
+                    ) : g.sourcePhoto ? (
                       <StyledPhoto src={g.sourcePhoto} style={style} />
                     ) : (
                       <DogPortrait style={style} bgSeed={i + 8} />

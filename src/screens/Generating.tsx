@@ -4,6 +4,7 @@ import { DogPortrait } from '../components/DogPortrait'
 import { StyledPhoto } from '../components/StyledPhoto'
 import { STYLES_BY_ID } from '../data/styles'
 import { finishGeneration, getState, useStore } from '../state/store'
+import { REAL_GENERATION_ENABLED, generateImage } from '../services/generate'
 
 const STAGES = [
   'Reading the photo',
@@ -22,42 +23,90 @@ export function Generating() {
   const style = styleId ? STYLES_BY_ID[styleId] : null
   const [stageIdx, setStageIdx] = useState(0)
   const [progress, setProgress] = useState(0)
+  const [statusNote, setStatusNote] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
+    const controller = new AbortController()
 
-    const tick = () => {
+    const photo = dog?.photo === '__demo__' ? null : dog?.photo ?? null
+    const realPath = REAL_GENERATION_ENABLED && !!photo && !!style
+
+    // Progress animation. With the real path we cap at ~92% until the
+    // network call lands, then snap to 100. Mock path runs the full bar
+    // over ~6s.
+    const targetCap = realPath ? 92 : 100
+    const tickRate = realPath ? 360 : 240
+    const tickStep = realPath ? 1.4 : 3.5
+
+    const interval = setInterval(() => {
       setProgress(p => {
         if (cancelled) return p
-        const next = Math.min(100, p + (3 + Math.random() * 4))
+        const next = Math.min(targetCap, p + tickStep + Math.random() * 1.5)
         return next
       })
-    }
-    const interval = setInterval(tick, 240)
+    }, tickRate)
 
     const stageInterval = setInterval(() => {
       setStageIdx(i => Math.min(STAGES.length - 1, i + 1))
-    }, 850)
+    }, 950)
 
-    // ~6s simulated generation. Real pipeline target is sub-15s.
-    const timer = setTimeout(() => {
-      const photo = dog?.photo === '__demo__' ? null : dog?.photo ?? null
-      finishGeneration({
-        sourcePhoto: photo,
-        markFreeUsed: !isPro && !freeGenUsed,
-      })
-    }, 6000)
+    let mockTimer: ReturnType<typeof setTimeout> | null = null
+
+    if (realPath && photo && style && dog) {
+      ;(async () => {
+        const res = await generateImage({
+          photo,
+          style,
+          breedId: dog.breedId,
+          customBreedName: dog.customBreedName,
+          signal: controller.signal,
+        })
+        if (cancelled) return
+
+        if (res.ok) {
+          setProgress(100)
+          finishGeneration({
+            sourcePhoto: photo,
+            outputUrl: res.outputUrl,
+            markFreeUsed: !isPro && !freeGenUsed,
+          })
+        } else {
+          // Honest fallback — still ship a result, just using the
+          // CSS-filter stand-in. Surface why for the developer.
+          // eslint-disable-next-line no-console
+          console.warn('[coif] real generation failed, falling back:', res.reason)
+          setStatusNote(`Inference failed (${res.reason.slice(0, 80)}). Using stylized fallback.`)
+          setProgress(100)
+          finishGeneration({
+            sourcePhoto: photo,
+            outputUrl: null,
+            markFreeUsed: !isPro && !freeGenUsed,
+          })
+        }
+      })()
+    } else {
+      // Mock path: ~6s, no real network.
+      mockTimer = setTimeout(() => {
+        if (cancelled) return
+        finishGeneration({
+          sourcePhoto: photo,
+          outputUrl: null,
+          markFreeUsed: !isPro && !freeGenUsed,
+        })
+      }, 6000)
+    }
 
     return () => {
       cancelled = true
+      controller.abort()
       clearInterval(interval)
       clearInterval(stageInterval)
-      clearTimeout(timer)
+      if (mockTimer) clearTimeout(mockTimer)
     }
-  }, [dog, isPro, freeGenUsed])
+  }, [dog, isPro, freeGenUsed, style])
 
   if (!style) {
-    // Defensive — shouldn't happen via normal nav.
     return (
       <ScreenContainer>
         <div className="flex-1 flex items-center justify-center text-sm text-ink/45">No style queued.</div>
@@ -65,7 +114,6 @@ export function Generating() {
     )
   }
 
-  // Hot-path target sub-15s; show priority queue copy if Pro.
   return (
     <ScreenContainer>
       <div className="flex flex-col h-full bg-bone">
@@ -77,13 +125,11 @@ export function Generating() {
         <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
           <div className="relative w-full max-w-xs aspect-square rounded-3xl overflow-hidden sticker grain">
             <div className="absolute inset-0 morph-stack">
-              {/* Before */}
               {dog?.photo && dog.photo !== '__demo__' ? (
                 <img src={dog.photo} alt="Your dog" />
               ) : (
                 <DogPortrait baseline bgSeed={3} />
               )}
-              {/* After (fades in over time) */}
               <div style={{ opacity: progress / 100, transition: 'opacity 240ms linear' }}>
                 {dog?.photo && dog.photo !== '__demo__' ? (
                   <StyledPhoto src={dog.photo} style={style} />
@@ -91,7 +137,6 @@ export function Generating() {
                   <DogPortrait style={style} bgSeed={4} />
                 )}
               </div>
-              {/* Scan line */}
               <div
                 className="absolute inset-x-0 h-[3px] bg-ember/80"
                 style={{
@@ -121,9 +166,14 @@ export function Generating() {
 
         <div className="px-5 pb-8 pt-4 text-center">
           <p className="text-[11px] text-ink/45">
-            Median hot-path target: under 15 seconds.
+            {REAL_GENERATION_ENABLED
+              ? 'Live inference via FLUX img2img on Replicate.'
+              : 'Median hot-path target: under 15 seconds.'}
             {!getState().isPro && ' Pro skips the queue.'}
           </p>
+          {statusNote && (
+            <p className="text-[10px] text-rust mt-1 max-w-xs mx-auto leading-snug">{statusNote}</p>
+          )}
         </div>
       </div>
     </ScreenContainer>

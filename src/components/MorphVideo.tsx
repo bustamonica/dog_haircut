@@ -14,13 +14,15 @@ import { StyledPhoto } from './StyledPhoto'
  */
 type Props = {
   beforePhoto: string | null
+  /** Real img2img output URL when available; otherwise the CSS-filter stand-in is used. */
+  afterUrl?: string | null
   style: Style
   watermark: boolean
   paused?: boolean
   rounded?: boolean
 }
 
-export function MorphVideo({ beforePhoto, style, watermark, paused = false, rounded = true }: Props) {
+export function MorphVideo({ beforePhoto, afterUrl, style, watermark, paused = false, rounded = true }: Props) {
   const [t, setT] = useState(0) // 0..1 morph progress
   const rafRef = useRef<number | null>(null)
   const startRef = useRef<number | null>(null)
@@ -68,7 +70,9 @@ export function MorphVideo({ beforePhoto, style, watermark, paused = false, roun
           <div style={beforeStyle}><DogPortrait baseline bgSeed={5} /></div>
         )}
         <div style={afterStyle}>
-          {beforePhoto ? (
+          {afterUrl ? (
+            <img src={afterUrl} alt={`After: ${style.name}`} className="w-full h-full object-cover" />
+          ) : beforePhoto ? (
             <StyledPhoto src={beforePhoto} style={style} />
           ) : (
             <DogPortrait style={style} bgSeed={6} />

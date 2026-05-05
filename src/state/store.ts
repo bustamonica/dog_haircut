@@ -8,6 +8,8 @@ export type Generation = {
   createdAt: number
   /** Source photo as a data URL, or null if the user used the SVG demo dog. */
   sourcePhoto: string | null
+  /** Real img2img output URL when available; null means use the CSS-filter stand-in. */
+  outputUrl: string | null
   watermarked: boolean
   savedToBoard: boolean
 }
@@ -121,7 +123,11 @@ export function startGeneration(styleId: string) {
   emit()
 }
 
-export function finishGeneration(opts: { sourcePhoto: string | null; markFreeUsed?: boolean }) {
+export function finishGeneration(opts: {
+  sourcePhoto: string | null
+  outputUrl?: string | null
+  markFreeUsed?: boolean
+}) {
   if (!state.pendingStyleId) return
   const id = `gen_${Date.now()}_${Math.floor(Math.random() * 1000)}`
   const gen: Generation = {
@@ -129,6 +135,7 @@ export function finishGeneration(opts: { sourcePhoto: string | null; markFreeUse
     styleId: state.pendingStyleId,
     createdAt: Date.now(),
     sourcePhoto: opts.sourcePhoto,
+    outputUrl: opts.outputUrl ?? null,
     watermarked: !state.isPro,
     savedToBoard: false,
   }

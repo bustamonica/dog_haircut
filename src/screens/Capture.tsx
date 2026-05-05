@@ -7,12 +7,11 @@ export function Capture() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
 
-  const onFile = (file: File) => {
-    const reader = new FileReader()
-    reader.onload = e => {
-      setPreview(e.target?.result as string)
-    }
-    reader.readAsDataURL(file)
+  const onFile = async (file: File) => {
+    // Downscale to keep request bodies under Replicate's limits and to
+    // speed up generation. 1024px on the long edge is plenty for img2img.
+    const downscaled = await downscaleToDataUrl(file, 1024, 0.9)
+    setPreview(downscaled)
   }
 
   const useDemoDog = () => {
@@ -122,4 +121,34 @@ function LibraryIcon() {
       <circle cx="6" cy="6.5" r="1" fill="#1A1815" />
     </svg>
   )
+}
+
+async function downscaleToDataUrl(file: File, maxEdge: number, quality: number): Promise<string> {
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const i = new Image()
+    i.onload = () => resolve(i)
+    i.onerror = reject
+    i.src = dataUrl
+  })
+
+  const longest = Math.max(img.width, img.height)
+  if (longest <= maxEdge) return dataUrl
+
+  const scale = maxEdge / longest
+  const w = Math.round(img.width * scale)
+  const h = Math.round(img.height * scale)
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return dataUrl
+  ctx.drawImage(img, 0, 0, w, h)
+  return canvas.toDataURL('image/jpeg', quality)
 }
