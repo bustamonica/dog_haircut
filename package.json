@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "gen-refs": "tsx scripts/generate-references.ts"
+    "gen-refs": "tsx scripts/generate-references.ts",
+    "edit": "tsx scripts/edit-haircut.ts"
   },
   "dependencies": {
     "react": "^19.2.5",
