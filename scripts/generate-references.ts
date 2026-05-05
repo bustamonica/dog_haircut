@@ -55,8 +55,13 @@ function buildPrompt(style: { name: string; description: string; groomerBrief: s
     `Grooming style: ${style.description}`,
     `Detail: ${style.groomerBrief}`,
     '',
-    'Composition: full body visible, three-quarter side view, dog standing calmly facing slightly toward the camera, sharp focus, soft even studio lighting, plain seamless light gray background, no props, no clothing.',
-    'Style: photorealistic pet photography, natural color, no text, no watermark, no logos.',
+    'Strict composition rules (MUST follow exactly the same way for every photograph in this set, so the images are visually consistent):',
+    '— The entire dog is visible in the frame from the top of the head to the bottom of the paws. All four paws must be fully inside the frame with at least 10% empty margin above the head and below the paws. Do not crop the feet, the ears, the tail, or any part of the body.',
+    '— The dog is standing upright on a flat level surface, weight evenly distributed on all four legs.',
+    '— Orientation: the dog\'s body is angled in a three-quarter view with the dog\'s LEFT shoulder closer to the camera, so the dog appears to be facing slightly toward the RIGHT side of the frame. The head is turned just enough to look toward the camera. The same orientation is used in every photograph.',
+    '— Camera at the dog\'s eye level, full-body framing, no extreme angles.',
+    '',
+    'Style: photorealistic pet photography, sharp focus, soft even studio lighting, plain seamless light neutral gray background, no props, no clothing, no collars, no leashes, no text, no watermark, no logos.',
   ].join(' ')
 }
 
