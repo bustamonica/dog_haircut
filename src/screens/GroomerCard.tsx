@@ -30,7 +30,7 @@ export function GroomerCard() {
           <EmptyState />
         ) : (
           <div className="space-y-4">
-            <BoardHeader dog={dog.name} breed={breed?.name ?? ''} />
+            <BoardHeader breed={breed?.name ?? ''} />
             {saved.map((g, i) => {
               const style = STYLES_BY_ID[g.styleId]
               return (
@@ -90,14 +90,13 @@ export function GroomerCard() {
   )
 }
 
-function BoardHeader({ dog, breed }: { dog: string; breed: string }) {
+function BoardHeader({ breed }: { breed: string }) {
   return (
     <div className="rounded-2xl bg-ink text-cream p-5 relative overflow-hidden">
       <div className="absolute inset-0 dot-pattern opacity-[0.07]" />
       <div className="relative">
         <p className="text-[10px] uppercase tracking-widest text-cream/60">For the groomer</p>
-        <p className="font-display italic text-3xl mt-1">{dog}</p>
-        <p className="text-sm text-cream/70 mt-0.5">{breed}</p>
+        <p className="font-display italic text-3xl mt-1">{breed}</p>
         <p className="text-[11px] text-cream/55 mt-3 leading-relaxed max-w-[34ch]">
           Reference looks below. Ask before deviating. Your call on what's safe for the coat.
         </p>

@@ -6,7 +6,6 @@ import { back, navigate, setState } from '../state/store'
 export function Capture() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
-  const [name, setName] = useState('')
 
   const onFile = (file: File) => {
     const reader = new FileReader()
@@ -18,13 +17,11 @@ export function Capture() {
 
   const useDemoDog = () => {
     setPreview('__demo__')
-    if (!name) setName('Bartholomew')
   }
 
   const onContinue = () => {
     setState({
       dog: {
-        name: name || 'My dog',
         breedId: 'goldendoodle', // tentative; user picks on next screen
         photo: preview,
         createdAt: Date.now(),
@@ -90,17 +87,7 @@ export function Capture() {
           Don't have a photo handy? Use a sample dog →
         </button>
 
-        <label className="block text-xs uppercase tracking-widest text-ink/45 mb-2">
-          Their name
-        </label>
-        <input
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="e.g. Bean. Mr Pickles. Steve."
-          className="w-full h-12 px-4 rounded-xl bg-ink/5 outline-none focus:bg-ink/10 transition-colors text-sm"
-        />
-
-        <div className="mt-5 rounded-2xl bg-cream border border-ink/5 p-4">
+        <div className="mt-2 rounded-2xl bg-cream border border-ink/5 p-4">
           <p className="text-xs font-semibold tracking-tight mb-1">Quick lighting tip</p>
           <p className="text-xs text-ink/65 leading-relaxed">
             Bright but not harsh. Side-on body shot beats top-down. Full silhouette helps the AI keep your dog's, you know, dog shape.

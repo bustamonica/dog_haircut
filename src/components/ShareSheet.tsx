@@ -6,7 +6,6 @@ type Props = {
   beforePhoto: string | null
   style: Style
   watermark: boolean
-  dogName: string
 }
 
 const TARGETS: { id: string; label: string; sub?: string; icon: React.ReactNode }[] = [
@@ -18,7 +17,7 @@ const TARGETS: { id: string; label: string; sub?: string; icon: React.ReactNode 
   { id: 'link', label: 'Copy link', sub: 'open.coif/abc123', icon: <Glyph>⌗</Glyph> },
 ]
 
-export function ShareSheet({ onClose, beforePhoto, style, watermark, dogName }: Props) {
+export function ShareSheet({ onClose, beforePhoto, style, watermark }: Props) {
   return (
     <div className="absolute inset-0 z-30 flex flex-col justify-end animate-fade-up" style={{ background: 'rgba(0,0,0,0.55)' }}>
       <button onClick={onClose} className="absolute inset-0" aria-label="Close" />
@@ -28,7 +27,7 @@ export function ShareSheet({ onClose, beforePhoto, style, watermark, dogName }: 
         </div>
 
         <div className="flex items-center justify-between mb-3">
-          <p className="font-display italic text-2xl tracking-tight">Share {dogName}</p>
+          <p className="font-display italic text-2xl tracking-tight">Share</p>
           <button onClick={onClose} className="press text-xs text-ink/55 px-2 h-8">Close</button>
         </div>
 
@@ -45,7 +44,7 @@ export function ShareSheet({ onClose, beforePhoto, style, watermark, dogName }: 
             <div>
               <p className="text-[11px] uppercase tracking-widest text-ink/45">Caption draft</p>
               <p className="text-sm leading-snug mt-1">
-                {dogName} as a {style.name.toLowerCase()}. {style.blurb.toLowerCase()} no notes.
+                my dog as a {style.name.toLowerCase()}. {style.blurb.toLowerCase()} no notes.
               </p>
             </div>
             <p className="text-[10px] text-ink/45 uppercase tracking-widest mt-2">

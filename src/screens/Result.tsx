@@ -11,7 +11,6 @@ export function Result() {
   const generations = useStore(s => s.generations)
   const isPro = useStore(s => s.isPro)
   const freeGenUsed = useStore(s => s.freeGenUsed)
-  const dog = useStore(s => s.dog)
   const gen = generations.find(g => g.id === activeId)
   const [view, setView] = useState<'morph' | 'compare'>('morph')
   const [showShare, setShowShare] = useState(false)
@@ -23,7 +22,7 @@ export function Result() {
   return (
     <ScreenContainer>
       <TopBar
-        title={dog?.name ?? 'Result'}
+        title="Result"
         left={<BackButton onClick={() => back()} />}
         right={
           <button
@@ -136,7 +135,6 @@ export function Result() {
           beforePhoto={beforePhoto}
           style={style}
           watermark={gen.watermarked}
-          dogName={dog?.name ?? 'My dog'}
         />
       )}
     </ScreenContainer>

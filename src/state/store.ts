@@ -13,7 +13,6 @@ export type Generation = {
 }
 
 export type DogProfile = {
-  name: string
   breedId: string
   photo: string | null
   createdAt: number

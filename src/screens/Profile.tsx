@@ -27,14 +27,14 @@ export function Profile() {
         <div className="flex items-end gap-4">
           <div className="w-24 h-24 rounded-2xl overflow-hidden bg-ink/5 sticker shrink-0">
             {dog.photo && dog.photo !== '__demo__' ? (
-              <img src={dog.photo} className="w-full h-full object-cover" alt={dog.name} />
+              <img src={dog.photo} className="w-full h-full object-cover" alt="Dog" />
             ) : (
               <DogPortrait baseline bgSeed={1} />
             )}
           </div>
           <div className="flex-1 pb-1">
-            <h1 className="font-display text-3xl tracking-tight">{dog.name}</h1>
-            <p className="text-sm text-ink/60">{breed?.name}</p>
+            <h1 className="font-display text-3xl tracking-tight">{breed?.name}</h1>
+            <p className="text-sm text-ink/60">{breed?.coatHint}</p>
             <div className="flex items-center gap-1.5 mt-1.5">
               {isPro ? (
                 <span className="chip chip-dark text-[10px] uppercase tracking-widest">pro</span>
