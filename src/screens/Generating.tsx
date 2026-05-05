@@ -4,7 +4,7 @@ import { DogPortrait } from '../components/DogPortrait'
 import { StyledPhoto } from '../components/StyledPhoto'
 import { STYLES_BY_ID } from '../data/styles'
 import { finishGeneration, getState, useStore } from '../state/store'
-import { REAL_GENERATION_ENABLED, generateImage } from '../services/generate'
+import { REAL_GENERATION_ENABLED, buildEditInstruction, generateImage } from '../services/generate'
 
 const STAGES = [
   'Reading the photo',
@@ -31,6 +31,7 @@ export function Generating() {
 
     const photo = dog?.photo === '__demo__' ? null : dog?.photo ?? null
     const realPath = REAL_GENERATION_ENABLED && !!photo && !!style
+    const prompt = style ? buildEditInstruction(style) : null
 
     // Progress animation. With the real path we cap at ~92% until the
     // network call lands, then snap to 100. Mock path runs the full bar
@@ -69,6 +70,7 @@ export function Generating() {
           finishGeneration({
             sourcePhoto: photo,
             outputUrl: res.outputUrl,
+            prompt,
             markFreeUsed: !isPro && !freeGenUsed,
           })
         } else {
@@ -81,6 +83,7 @@ export function Generating() {
           finishGeneration({
             sourcePhoto: photo,
             outputUrl: null,
+            prompt,
             markFreeUsed: !isPro && !freeGenUsed,
           })
         }
@@ -92,6 +95,7 @@ export function Generating() {
         finishGeneration({
           sourcePhoto: photo,
           outputUrl: null,
+          prompt,
           markFreeUsed: !isPro && !freeGenUsed,
         })
       }, 6000)

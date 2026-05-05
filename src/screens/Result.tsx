@@ -92,6 +92,7 @@ export function Result() {
               {style.groomerBrief}
             </p>
           </details>
+          {gen.prompt && <PromptDetails prompt={gen.prompt} />}
         </div>
 
         {/* Quality micro-survey */}
@@ -145,6 +146,35 @@ export function Result() {
         />
       )}
     </ScreenContainer>
+  )
+}
+
+function PromptDetails({ prompt }: { prompt: string }) {
+  const [copied, setCopied] = useState(false)
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(prompt)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1400)
+    } catch {
+      // clipboard may be blocked on insecure origins (LAN HTTP); silent
+    }
+  }
+  return (
+    <details className="mt-3">
+      <summary className="text-xs text-ink/55 cursor-pointer">Show prompt sent to model</summary>
+      <div className="mt-2 rounded-lg bg-ink/5 p-3">
+        <p className="text-xs text-ink/80 font-mono leading-relaxed whitespace-pre-wrap break-words">
+          {prompt}
+        </p>
+        <button
+          onClick={onCopy}
+          className="press mt-2 text-[11px] uppercase tracking-widest text-ink/55 hover:text-ink"
+        >
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+    </details>
   )
 }
 

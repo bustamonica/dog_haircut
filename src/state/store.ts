@@ -10,6 +10,8 @@ export type Generation = {
   sourcePhoto: string | null
   /** Real img2img output URL when available; null means use the CSS-filter stand-in. */
   outputUrl: string | null
+  /** Prompt that was sent to (or would have been sent to) the model. Always populated. */
+  prompt: string | null
   watermarked: boolean
   savedToBoard: boolean
 }
@@ -126,6 +128,7 @@ export function startGeneration(styleId: string) {
 export function finishGeneration(opts: {
   sourcePhoto: string | null
   outputUrl?: string | null
+  prompt?: string | null
   markFreeUsed?: boolean
 }) {
   if (!state.pendingStyleId) return
@@ -136,6 +139,7 @@ export function finishGeneration(opts: {
     createdAt: Date.now(),
     sourcePhoto: opts.sourcePhoto,
     outputUrl: opts.outputUrl ?? null,
+    prompt: opts.prompt ?? null,
     watermarked: !state.isPro,
     savedToBoard: false,
   }

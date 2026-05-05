@@ -34,7 +34,7 @@ type GeminiResponse = {
   error?: { message?: string }
 }
 
-function buildEditInstruction(style: Style): string {
+export function buildEditInstruction(style: Style): string {
   const tail =
     'Keep the exact same dog (same face, eyes, nose, ears, markings), same pose, same camera angle, same background. Photorealistic pet photography, sharp focus, natural lighting.'
 
