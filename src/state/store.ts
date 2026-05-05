@@ -14,6 +14,8 @@ export type Generation = {
 
 export type DogProfile = {
   breedId: string
+  /** Free-text override when the user types a breed not in the curated list. */
+  customBreedName?: string
   photo: string | null
   createdAt: number
 }

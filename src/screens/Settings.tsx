@@ -15,7 +15,7 @@ export function Settings() {
         </Section>
 
         <Section title="Dog">
-          <Row label="Breed" value={dog?.breedId ?? '—'} />
+          <Row label="Breed" value={dog?.customBreedName ?? dog?.breedId ?? '—'} />
           <p className="text-[11px] text-ink/45 px-3 pb-3">
             One dog per account. Multi-dog support is on the list.
           </p>

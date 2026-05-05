@@ -33,7 +33,7 @@ export function Profile() {
             )}
           </div>
           <div className="flex-1 pb-1">
-            <h1 className="font-display text-3xl tracking-tight">{breed?.name}</h1>
+            <h1 className="font-display text-3xl tracking-tight">{dog.customBreedName ?? breed?.name}</h1>
             <p className="text-sm text-ink/60">{breed?.coatHint}</p>
             <div className="flex items-center gap-1.5 mt-1.5">
               {isPro ? (

@@ -30,7 +30,7 @@ export function GroomerCard() {
           <EmptyState />
         ) : (
           <div className="space-y-4">
-            <BoardHeader breed={breed?.name ?? ''} />
+            <BoardHeader breed={dog.customBreedName ?? breed?.name ?? ''} />
             {saved.map((g, i) => {
               const style = STYLES_BY_ID[g.styleId]
               return (
