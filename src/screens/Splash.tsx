@@ -4,7 +4,7 @@ import { DogPortrait } from '../components/DogPortrait'
 import { STYLES_BY_ID } from '../data/styles'
 import { navigate } from '../state/store'
 
-const ROTATION = ['mohawk', 'wes-anderson', 'lion-cut', 'frosted-tips', '70s-rockstar']
+const ROTATION = ['mohawk', 'lion-cut', 'frosted-tips', '70s-rockstar', 'hes-just-a-boy']
 
 export function Splash() {
   const [idx, setIdx] = useState(0)

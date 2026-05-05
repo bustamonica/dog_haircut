@@ -130,16 +130,6 @@ export const STYLES: Style[] = [
     coat: { bodyFluff: 0.95, headFluff: 0.9, earFluff: 1, silhouette: 'mullet' },
   },
   {
-    id: 'wes-anderson',
-    name: 'Wes Anderson',
-    category: 'fun',
-    pro: true,
-    blurb: 'Symmetrical. Slightly sad. Beige.',
-    description: 'Perfectly geometric, center-parted, painfully symmetrical. The dog is slightly disappointed.',
-    groomerBrief: 'Geometric scissor finish. Sharp horizontal hemline at body and tail. Strong center part on head. Even ear length.',
-    coat: { bodyFluff: 0.85, headFluff: 0.9, earFluff: 0.95, silhouette: 'standard', tone: '#D9B98A' },
-  },
-  {
     id: 'hes-just-a-boy',
     name: "He's Just A Boy",
     category: 'fun',

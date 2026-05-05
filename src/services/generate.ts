@@ -61,8 +61,6 @@ export function buildEditInstruction(style: Style): string {
       'Give the dog a tidy short cut: clean face and ears, body trimmed to about 1 inch, neat paws.',
     '70s-rockstar':
       'Give the dog a 1970s rockstar shag haircut: long layered coat with heavy feathering on the ears, center-parted hair on the head, slightly tousled.',
-    'wes-anderson':
-      'Give the dog a Wes Anderson haircut: perfectly symmetrical, geometric scissor finish with a sharp horizontal hemline, strong center part on the head, painfully tidy. Slight warm beige tint.',
     'hes-just-a-boy':
       'Give the dog a slightly overgrown shaggy haircut with a soft fringe over the eyes — bedhead style, intentionally uneven.',
     'main-character':

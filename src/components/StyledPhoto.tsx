@@ -97,12 +97,6 @@ function effectsFor(style: Style): Effect {
         overlay: 'radial-gradient(circle at 50% 30%, transparent 50%, rgba(120, 60, 0, 0.35) 100%)',
         blendOverlay: 'multiply',
       }
-    case 'wes-anderson':
-      return {
-        filter: 'sepia(0.5) saturate(1.4) contrast(1.05) hue-rotate(-10deg) brightness(1.05)',
-        overlay: 'linear-gradient(180deg, rgba(217,185,138,0.18), rgba(184,140,80,0.18))',
-        blendOverlay: 'multiply',
-      }
     case 'hes-just-a-boy':
       return {
         filter: 'sepia(0.18) brightness(1.06) contrast(0.98) saturate(1.05)',

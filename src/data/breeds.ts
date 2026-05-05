@@ -16,7 +16,7 @@ export const BREEDS: Breed[] = [
     name: 'Goldendoodle',
     coatHint: 'curly, high-maintenance',
     defaultStyleId: 'teddy-bear',
-    autoPickStyleId: 'wes-anderson',
+    autoPickStyleId: 'hes-just-a-boy',
   },
   {
     id: 'standard-poodle',
@@ -44,7 +44,7 @@ export const BREEDS: Breed[] = [
     name: 'Yorkshire Terrier',
     coatHint: 'long silk coat',
     defaultStyleId: 'puppy-cut',
-    autoPickStyleId: 'wes-anderson',
+    autoPickStyleId: 'mohawk',
   },
   {
     id: 'bichon',
