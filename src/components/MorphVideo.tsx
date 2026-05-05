@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import type { Style } from '../data/styles'
 import { DogPortrait } from './DogPortrait'
+import { StyledPhoto } from './StyledPhoto'
 
 /**
  * Auto-playing before/after morph for the result screen + share asset.
@@ -67,7 +68,11 @@ export function MorphVideo({ beforePhoto, style, watermark, paused = false, roun
           <div style={beforeStyle}><DogPortrait baseline bgSeed={5} /></div>
         )}
         <div style={afterStyle}>
-          <DogPortrait style={style} bgSeed={6} />
+          {beforePhoto ? (
+            <StyledPhoto src={beforePhoto} style={style} />
+          ) : (
+            <DogPortrait style={style} bgSeed={6} />
+          )}
         </div>
       </div>
 

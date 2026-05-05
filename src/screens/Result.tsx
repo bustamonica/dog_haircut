@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { BackButton, Button, ScreenContainer, Scroll, TopBar } from '../components/ui'
 import { MorphVideo } from '../components/MorphVideo'
 import { DogPortrait } from '../components/DogPortrait'
+import { StyledPhoto } from '../components/StyledPhoto'
 import { STYLES_BY_ID } from '../data/styles'
 import { back, navigate, toggleSave, useStore } from '../state/store'
 import { ShareSheet } from '../components/ShareSheet'
@@ -186,7 +187,11 @@ function CompareView({
         <div className="absolute top-2 left-2 chip">before</div>
       </div>
       <div className="relative overflow-hidden border-t-2 border-cream">
-        <DogPortrait style={style} bgSeed={6} />
+        {beforePhoto ? (
+          <StyledPhoto src={beforePhoto} style={style} />
+        ) : (
+          <DogPortrait style={style} bgSeed={6} />
+        )}
         <div className="absolute top-2 right-2 chip chip-dark">{style.name}</div>
         {watermark && <div className="watermark">made with coif</div>}
       </div>

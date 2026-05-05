@@ -4,6 +4,7 @@ import { DogPortrait } from '../components/DogPortrait'
 import { BREEDS } from '../data/breeds'
 import { STYLES_BY_ID } from '../data/styles'
 import { back, navigate, setState, useStore } from '../state/store'
+import { StyledPhoto } from '../components/StyledPhoto'
 
 export function Profile() {
   const dog = useStore(s => s.dog)
@@ -72,7 +73,11 @@ export function Profile() {
                   className="press text-left bg-cream rounded-2xl overflow-hidden sticker"
                 >
                   <div className="aspect-square overflow-hidden relative">
-                    <DogPortrait style={style} bgSeed={i + 8} />
+                    {g.sourcePhoto ? (
+                      <StyledPhoto src={g.sourcePhoto} style={style} />
+                    ) : (
+                      <DogPortrait style={style} bgSeed={i + 8} />
+                    )}
                     {g.savedToBoard && (
                       <div className="absolute top-2 right-2 chip chip-dark text-[10px]">on board</div>
                     )}

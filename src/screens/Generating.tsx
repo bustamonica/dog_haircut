@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ScreenContainer, Wordmark } from '../components/ui'
 import { DogPortrait } from '../components/DogPortrait'
+import { StyledPhoto } from '../components/StyledPhoto'
 import { STYLES_BY_ID } from '../data/styles'
 import { finishGeneration, getState, useStore } from '../state/store'
 
@@ -84,7 +85,11 @@ export function Generating() {
               )}
               {/* After (fades in over time) */}
               <div style={{ opacity: progress / 100, transition: 'opacity 240ms linear' }}>
-                <DogPortrait style={style} bgSeed={4} />
+                {dog?.photo && dog.photo !== '__demo__' ? (
+                  <StyledPhoto src={dog.photo} style={style} />
+                ) : (
+                  <DogPortrait style={style} bgSeed={4} />
+                )}
               </div>
               {/* Scan line */}
               <div

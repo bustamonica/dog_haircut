@@ -1,6 +1,7 @@
 import { BackButton, Button, ScreenContainer, Scroll, TopBar } from '../components/ui'
 import { BottomNav } from './Library'
 import { DogPortrait } from '../components/DogPortrait'
+import { StyledPhoto } from '../components/StyledPhoto'
 import { BREEDS } from '../data/breeds'
 import { STYLES_BY_ID } from '../data/styles'
 import { back, navigate, useStore } from '../state/store'
@@ -47,7 +48,11 @@ export function GroomerCard() {
                       <div className="absolute top-2 left-2 chip">before</div>
                     </div>
                     <div className="aspect-square overflow-hidden relative border-l-2 border-cream">
-                      <DogPortrait style={style} bgSeed={i + 13} />
+                      {g.sourcePhoto ? (
+                        <StyledPhoto src={g.sourcePhoto} style={style} />
+                      ) : (
+                        <DogPortrait style={style} bgSeed={i + 13} />
+                      )}
                       <div className="absolute top-2 right-2 chip chip-dark">{style.name}</div>
                     </div>
                   </div>
