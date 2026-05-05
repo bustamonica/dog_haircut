@@ -167,7 +167,7 @@ export function Generating() {
         <div className="px-5 pb-8 pt-4 text-center">
           <p className="text-[11px] text-ink/45">
             {REAL_GENERATION_ENABLED
-              ? 'Live inference via FLUX img2img on Replicate.'
+              ? 'Live edit via FLUX Kontext on Replicate.'
               : 'Median hot-path target: under 15 seconds.'}
             {!getState().isPro && ' Pro skips the queue.'}
           </p>
