@@ -36,7 +36,7 @@ type GeminiResponse = {
 
 export function buildEditInstruction(style: Style): string {
   const tail =
-    'Keep the exact same dog (same face, eyes, nose, ears, markings), same pose, same camera angle, same background. Photorealistic pet photography, sharp focus, natural lighting.'
+    'Edit the input photograph in place. Strictly preserve the dog\'s face, eyes, nose, ears, markings, body proportions, pose, the camera angle, and the entire background — sky, ground, water, foliage, objects, lighting, depth of field. Do not regenerate the scene. Output the edited photograph only.'
 
   const overrides: Record<string, string> = {
     mohawk:
@@ -103,10 +103,54 @@ export function buildEditInstruction(style: Style): string {
 function splitDataUrl(dataUrl: string): { mimeType: string; base64: string } {
   const match = dataUrl.match(/^data:([^;]+);base64,(.*)$/)
   if (!match) {
-    // Assume jpeg if no header
     return { mimeType: 'image/jpeg', base64: dataUrl }
   }
   return { mimeType: match[1], base64: match[2] }
+}
+
+/**
+ * Reference-image fetch. The reference is a static asset bundled at build
+ * time (under public/references/{filename}) and loaded as base64 so it can
+ * be sent inline to Gemini. Returns null if the asset is missing —
+ * generateImage then falls back to the text-only prompt.
+ */
+async function loadReference(
+  filename: string,
+  signal?: AbortSignal,
+): Promise<{ mimeType: string; data: string } | null> {
+  try {
+    const res = await fetch(`/references/${filename}`, { signal })
+    if (!res.ok) return null
+    const blob = await res.blob()
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => reject(reader.error)
+      reader.readAsDataURL(blob)
+    })
+    const { mimeType, base64 } = splitDataUrl(dataUrl)
+    return { mimeType, data: base64 }
+  } catch {
+    return null
+  }
+}
+
+function buildReferencePrompt(style: Style): string {
+  return [
+    'You are given two photographs.',
+    'IMAGE 1 is the source: a real photo of the user\'s dog.',
+    'IMAGE 2 is a reference: a different dog wearing the haircut we want.',
+    '',
+    `Edit IMAGE 1 by re-rendering the dog's coat and grooming to match exactly the haircut, coat shape, length, sculpted volume, and styling of the dog in IMAGE 2 (the "${style.name}" cut).`,
+    '',
+    'Strictly preserve from IMAGE 1, unchanged: the dog\'s face, eyes, nose, mouth, ears, markings, body proportions, breed, color (unless the cut explicitly involves dye), pose, the entire background (sky, ground, water, foliage, objects), the lighting, depth of field, and the camera angle.',
+    '',
+    'Strictly take from IMAGE 2: only the haircut shape — coat length, silhouette, sculpted volume, the way the fur is cut around the head, ears, body, legs, and tail.',
+    '',
+    'Do not transfer the reference dog\'s breed, color, face, or background. Do not regenerate the scene. The output must look like IMAGE 1 with only the haircut altered.',
+    '',
+    'Output the edited photograph only.',
+  ].join(' ')
 }
 
 export type GenerateInput = {
@@ -118,7 +162,7 @@ export type GenerateInput = {
 }
 
 export type GenerateResult =
-  | { ok: true; outputUrl: string }
+  | { ok: true; outputUrl: string; usedReference: boolean }
   | { ok: false; reason: string }
 
 export async function generateImage(input: GenerateInput): Promise<GenerateResult> {
@@ -130,7 +174,26 @@ export async function generateImage(input: GenerateInput): Promise<GenerateResul
   }
 
   const { mimeType, base64 } = splitDataUrl(input.photo)
-  const prompt = buildEditInstruction(input.style)
+
+  // Try to load a reference image; fall through to text-only path if none.
+  const refFile = input.style.referenceImage
+  const reference = refFile ? await loadReference(refFile, input.signal) : null
+  const usedReference = !!reference
+
+  // Build the parts. Order matters: source image first (so the model
+  // anchors on it as the canvas to edit), reference second, instruction
+  // last (Gemini reads the trailing text as the directive).
+  const parts: Part[] = []
+  if (reference) {
+    parts.push({ text: 'IMAGE 1 (source — preserve everything except the haircut):' })
+    parts.push({ inlineData: { mimeType, data: base64 } })
+    parts.push({ text: 'IMAGE 2 (reference — copy only the haircut shape):' })
+    parts.push({ inlineData: { mimeType: reference.mimeType, data: reference.data } })
+    parts.push({ text: buildReferencePrompt(input.style) })
+  } else {
+    parts.push({ inlineData: { mimeType, data: base64 } })
+    parts.push({ text: buildEditInstruction(input.style) })
+  }
 
   try {
     const res = await fetch(`/api/gemini/models/${MODEL}:generateContent`, {
@@ -138,17 +201,8 @@ export async function generateImage(input: GenerateInput): Promise<GenerateResul
       headers: { 'Content-Type': 'application/json' },
       signal: input.signal,
       body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              { text: prompt },
-              { inlineData: { mimeType, data: base64 } },
-            ],
-          },
-        ],
+        contents: [{ role: 'user', parts }],
         generationConfig: {
-          // Image-capable response. The model emits image bytes inline.
           responseModalities: ['IMAGE'],
         },
       }),
@@ -168,8 +222,8 @@ export async function generateImage(input: GenerateInput): Promise<GenerateResul
       return { ok: false, reason: `blocked: ${data.promptFeedback.blockReason}` }
     }
 
-    const parts = data.candidates?.[0]?.content?.parts ?? []
-    const imagePart = parts.find(
+    const respParts = data.candidates?.[0]?.content?.parts ?? []
+    const imagePart = respParts.find(
       (p): p is { inlineData: { mimeType: string; data: string } } =>
         'inlineData' in p && !!p.inlineData?.data,
     )
@@ -180,7 +234,7 @@ export async function generateImage(input: GenerateInput): Promise<GenerateResul
 
     const outMime = imagePart.inlineData.mimeType || 'image/png'
     const outputUrl = `data:${outMime};base64,${imagePart.inlineData.data}`
-    return { ok: true, outputUrl }
+    return { ok: true, outputUrl, usedReference }
   } catch (err) {
     return { ok: false, reason: err instanceof Error ? err.message : String(err) }
   }

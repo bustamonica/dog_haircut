@@ -65,7 +65,18 @@ export function Library() {
                 className="press text-left bg-cream rounded-2xl overflow-hidden sticker"
               >
                 <div className="relative aspect-square overflow-hidden">
-                  <DogPortrait style={style} bgSeed={i + 1} />
+                  {style.referenceImage ? (
+                    <img
+                      src={`/references/${style.referenceImage}`}
+                      alt={style.name}
+                      className="w-full h-full object-cover"
+                      onError={e => {
+                        // If the reference file isn't there yet, fall back to SVG.
+                        ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+                      }}
+                    />
+                  ) : null}
+                  {!style.referenceImage && <DogPortrait style={style} bgSeed={i + 1} />}
                   {locked && (
                     <div className="absolute inset-0 bg-ink/55 flex items-center justify-center">
                       <div className="text-cream text-center">

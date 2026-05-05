@@ -16,6 +16,13 @@ export type Style = {
   blurb: string // internet-pilled tagline
   description: string // what the user actually wants
   groomerBrief: string // technical request to bring to the groomer
+  /**
+   * Filename (in /public/references) of a reference photo of a poodle/doodle
+   * wearing this haircut. When present, the Gemini call uses the reference
+   * as a visual target instead of relying on text alone.
+   * Example: 'mohawk.jpg' → loaded from /references/mohawk.jpg.
+   */
+  referenceImage?: string
   coat: {
     bodyFluff: number
     headFluff: number
@@ -37,6 +44,7 @@ export const STYLES: Style[] = [
     description: 'Even, rounded fluff at about 1 to 1.5 inches. Round face, round paws, round everything.',
     groomerBrief:
       'Teddy bear cut: 1–1.5" body length, scissor-finished. Round head, round muzzle, round paws. No shaved face. Blend ears into head shape.',
+    referenceImage: 'teddy-bear.jpg',
     coat: { bodyFluff: 0.9, headFluff: 0.95, earFluff: 0.85, silhouette: 'standard' },
   },
   {
@@ -47,6 +55,7 @@ export const STYLES: Style[] = [
     blurb: 'Forever 6 months old.',
     description: 'Short, even all over. Easy to maintain, hard to mess up.',
     groomerBrief: 'Puppy cut: 1/2" all over with #4F or #5F blade. Tidy face and feet, no scissor work needed.',
+    referenceImage: 'puppy-cut.jpg',
     coat: { bodyFluff: 0.55, headFluff: 0.6, earFluff: 0.55, silhouette: 'standard' },
   },
   {
@@ -67,6 +76,7 @@ export const STYLES: Style[] = [
     blurb: 'Tiny dog. Major Sphinx energy.',
     description: 'Body shaved short, full mane around head and shoulders, tail tuft at the end.',
     groomerBrief: 'Lion cut: #7F body, leave full mane to shoulders and around face. Pom on tail tip. Clean feet.',
+    referenceImage: 'lion-cut.jpg',
     coat: { bodyFluff: 0.25, headFluff: 1, earFluff: 0.85, silhouette: 'lion-mane' },
   },
   {
@@ -77,6 +87,7 @@ export const STYLES: Style[] = [
     blurb: 'Show ring or bust.',
     description: 'Sculpted poodle silhouette. Pompoms on legs and tail, shaved hindquarters and face.',
     groomerBrief: 'Continental clip: shave hindquarters, face, and feet. Leave rosettes on hips, bracelets on legs, full pom on tail. Topknot banded.',
+    referenceImage: 'continental.jpg',
     coat: { bodyFluff: 0.5, headFluff: 1, earFluff: 0.7, silhouette: 'sculpted' },
   },
   {
@@ -87,6 +98,7 @@ export const STYLES: Style[] = [
     blurb: 'A cloud. With a face.',
     description: 'Maximum round fluff, scissor-finished. Show-style without the show.',
     groomerBrief: 'Round-scissored finish at 2"+, fluffed and powdered. No clipper marks. Bichon-style head.',
+    referenceImage: 'powder-puff.jpg',
     coat: { bodyFluff: 1, headFluff: 1, earFluff: 0.95, silhouette: 'standard' },
   },
   {
@@ -97,6 +109,7 @@ export const STYLES: Style[] = [
     blurb: 'August in Phoenix energy.',
     description: 'Short to the skin everywhere. We know, we know — vet says it can affect coat regrowth on doubles. Pick wisely.',
     groomerBrief: '#10 blade body, #15 sanitary, light scissor on head if requested. Note: not advised for double-coated breeds.',
+    referenceImage: 'summer-shave.jpg',
     coat: { bodyFluff: 0.18, headFluff: 0.25, earFluff: 0.25, silhouette: 'shaved' },
   },
   {
@@ -117,6 +130,7 @@ export const STYLES: Style[] = [
     blurb: 'Punk is not dead. It is just at the groomer.',
     description: 'Body short, narrow ridge of fluff straight down the spine and through the topknot.',
     groomerBrief: '#5F body. Leave 1.5" ridge from base of skull to mid-back, scissored upright. Optional gel hold.',
+    referenceImage: 'mohawk.jpg',
     coat: { bodyFluff: 0.45, headFluff: 0.7, earFluff: 0.5, silhouette: 'mohawk', accent: '#1A1815' },
   },
   {

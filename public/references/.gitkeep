@@ -1,0 +1,18 @@
+# Drop your reference photos in this folder.
+#
+# Naming: {style-id}.jpg (or .png)
+# Examples:
+#   teddy-bear.jpg
+#   puppy-cut.jpg
+#   lion-cut.jpg
+#   continental.jpg
+#   powder-puff.jpg
+#   summer-shave.jpg
+#   mohawk.jpg
+#
+# These are sent to Gemini alongside the user's photo as a visual target
+# for the haircut. The model copies the cut from the reference onto the
+# dog in the user's photo, preserving the user photo's identity + background.
+#
+# Use a poodle or doodle as the reference dog — they generalize well to
+# other breeds. Square or 4:5 aspect, 1024px on the long edge is plenty.
