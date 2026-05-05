@@ -66,6 +66,7 @@ export const STYLES: Style[] = [
     blurb: "It's giving 'low maintenance era'.",
     description: 'The shortest reasonable length. For when your dog is a swamp creature by week 3.',
     groomerBrief: 'Kennel cut: #7F blade body, #10 sanitary. Clean ears and feet. Function over form.',
+    referenceImage: 'kennel-cut.jpg',
     coat: { bodyFluff: 0.35, headFluff: 0.4, earFluff: 0.35, silhouette: 'standard' },
   },
   {
@@ -120,6 +121,7 @@ export const STYLES: Style[] = [
     blurb: 'For the dog with a LinkedIn.',
     description: 'Breed-standard show coat. Fully scissored, hand-stripped where required.',
     groomerBrief: 'Breed-standard show clip per current AKC profile. Hand-stripped. Confirm event date for grow-out.',
+    referenceImage: 'show-cut.jpg',
     coat: { bodyFluff: 0.85, headFluff: 0.9, earFluff: 0.9, silhouette: 'standard' },
   },
   {
@@ -141,6 +143,7 @@ export const STYLES: Style[] = [
     blurb: 'Has a backstage rider.',
     description: 'Loose, layered shag. Volume on top, feathered ears like sideburns.',
     groomerBrief: 'Long body coat layered with thinning shears. Heavy feathering on ears and tail. Center part on head.',
+    referenceImage: '70s-rockstar.jpg',
     coat: { bodyFluff: 0.95, headFluff: 0.9, earFluff: 1, silhouette: 'mullet' },
   },
   {
@@ -151,6 +154,7 @@ export const STYLES: Style[] = [
     blurb: 'Soft. Confused. Beloved.',
     description: 'Slightly overgrown puppy cut with permanent bedhead. Eyes barely visible. Forgivable.',
     groomerBrief: 'Scruffy 1.5" body, intentionally uneven. Light face shaping but leave eye fringe. Do NOT clean up too much.',
+    referenceImage: 'hes-just-a-boy.jpg',
     coat: { bodyFluff: 0.8, headFluff: 1, earFluff: 0.85, silhouette: 'standard', tone: '#E2BD83' },
   },
   {
@@ -161,6 +165,7 @@ export const STYLES: Style[] = [
     blurb: 'You are not the protagonist. The dog is.',
     description: 'Deliberate volume on the head, dramatic ear feathering, body kept clean to draw the eye up.',
     groomerBrief: 'Long head + ear coat scissored for volume. Body trimmed clean at 1/2" to contrast.',
+    referenceImage: 'main-character.jpg',
     coat: { bodyFluff: 0.45, headFluff: 1, earFluff: 1, silhouette: 'topknot' },
   },
   {
@@ -171,6 +176,7 @@ export const STYLES: Style[] = [
     blurb: 'Cannot be photographed. Will not testify.',
     description: 'All face fringe, pulled forward. Plausibly deniable identity.',
     groomerBrief: 'Leave full face fringe forward over eyes and muzzle. Body kept at 1" for contrast.',
+    referenceImage: 'witness-protection.jpg',
     coat: { bodyFluff: 0.6, headFluff: 1, earFluff: 0.95, silhouette: 'standard' },
   },
   {
@@ -181,6 +187,7 @@ export const STYLES: Style[] = [
     blurb: 'It is 2003 again.',
     description: 'Light blonde tipping on a darker base. The dog now skateboards.',
     groomerBrief: 'Subtle peroxide tipping (pet-safe color). Texture cut on top, leave length on body.',
+    referenceImage: 'frosted-tips.jpg',
     coat: { bodyFluff: 0.85, headFluff: 0.95, earFluff: 0.85, silhouette: 'standard', accent: '#FFE9A8' },
   },
   {
@@ -191,6 +198,7 @@ export const STYLES: Style[] = [
     blurb: 'The Zoom-from-the-shoulders cut.',
     description: 'Tidy face and ears, slightly longer body. The "I have things to do today" look.',
     groomerBrief: 'Face and ears scissored clean. Body 1" with #4F. Tidy feet. Sanitary trim.',
+    referenceImage: 'business-casual.jpg',
     coat: { bodyFluff: 0.6, headFluff: 0.7, earFluff: 0.6, silhouette: 'standard' },
   },
   {
@@ -201,6 +209,7 @@ export const STYLES: Style[] = [
     blurb: 'Limited time. Like the latte.',
     description: 'Warmer copper undertone, leaf-pile volume. Drops every September.',
     groomerBrief: 'Same as breed-default cut, plus a pet-safe rinse to warm the coat tone.',
+    referenceImage: 'autumn-drop.jpg',
     coat: { bodyFluff: 0.9, headFluff: 0.95, earFluff: 0.9, silhouette: 'standard', tone: '#C97B3F' },
   },
   {
@@ -211,6 +220,7 @@ export const STYLES: Style[] = [
     blurb: 'Built different. Built warmer.',
     description: 'Maximum length retained. The pre-cut. For January only.',
     groomerBrief: 'Bath, blow-out, deshed. NO length removed. Tidy paws and sanitary only.',
+    referenceImage: 'winter-fluff.jpg',
     coat: { bodyFluff: 1, headFluff: 1, earFluff: 1, silhouette: 'standard' },
   },
   {
@@ -221,6 +231,7 @@ export const STYLES: Style[] = [
     blurb: 'Designer drop. Unhinged. On purpose.',
     description: 'Asymmetric ear lengths, single dyed paw. Not for the dog who plays by rules.',
     groomerBrief: 'Asymmetric ears (2:1 ratio). Single front paw dyed slate blue, pet-safe. Body 3/4".',
+    referenceImage: 'designer-paloma.jpg',
     coat: { bodyFluff: 0.7, headFluff: 0.85, earFluff: 1, silhouette: 'standard', accent: '#5E7A8C' },
   },
   {
@@ -231,6 +242,7 @@ export const STYLES: Style[] = [
     blurb: 'Brutalist. Geometric. Quietly furious.',
     description: 'Exaggerated boxy silhouette. Sharp 90-degree edges everywhere. The dog is now architecture.',
     groomerBrief: 'Square scissored silhouette. 90deg corners at chest, hip, and head. Lock the line. No softening.',
+    referenceImage: 'designer-emil.jpg',
     coat: { bodyFluff: 0.75, headFluff: 0.85, earFluff: 0.7, silhouette: 'standard' },
   },
   {
@@ -241,6 +253,7 @@ export const STYLES: Style[] = [
     blurb: 'Floor mop. Cherished.',
     description: 'Length to the floor, parted down the spine. Looks like an heirloom rug.',
     groomerBrief: 'Maximum coat retention. Brush out only. Center part along spine. Hair pulled into top knot to clear eyes.',
+    referenceImage: 'rugrat.jpg',
     coat: { bodyFluff: 1, headFluff: 1, earFluff: 1, silhouette: 'topknot' },
   },
   {
@@ -251,6 +264,7 @@ export const STYLES: Style[] = [
     blurb: 'Shocking. Electric. Slightly green.',
     description: 'Vivid pet-safe green tipping. The dog is a putting green now.',
     groomerBrief: 'Pet-safe green tipping (Opawz / similar). Even saturation across body. Leave face natural.',
+    referenceImage: 'astroturf.jpg',
     coat: { bodyFluff: 0.7, headFluff: 0.7, earFluff: 0.7, silhouette: 'standard', accent: '#9FCB6B' },
   },
   {
@@ -261,6 +275,7 @@ export const STYLES: Style[] = [
     blurb: 'Inherited the kingdom. Hates it.',
     description: 'Long, mournful ear feathering. Slightly windswept body. Permanent main-character melancholy.',
     groomerBrief: 'Maximum ear length scissored to a point. Body 1.5" with vertical scissor sweep front-to-back.',
+    referenceImage: 'sad-prince.jpg',
     coat: { bodyFluff: 0.85, headFluff: 1, earFluff: 1, silhouette: 'standard' },
   },
   {
@@ -271,6 +286,7 @@ export const STYLES: Style[] = [
     blurb: 'You are not on the list.',
     description: 'Squared shoulders, tight body, intimidating brow fringe. The dog now works the door.',
     groomerBrief: 'Square shoulder line, tight #4F body. Heavy brow fringe left forward. Clean muzzle.',
+    referenceImage: 'bouncer.jpg',
     coat: { bodyFluff: 0.55, headFluff: 0.95, earFluff: 0.55, silhouette: 'standard' },
   },
   {
@@ -281,6 +297,7 @@ export const STYLES: Style[] = [
     blurb: 'Allergy season survivor.',
     description: 'A clean rebirth. Even, light body, soft pastel accent on ears.',
     groomerBrief: 'Body 1/2", pet-safe pastel pink rinse on ear tips only. Brighten and deshed.',
+    referenceImage: 'spring-bloom.jpg',
     coat: { bodyFluff: 0.6, headFluff: 0.7, earFluff: 0.7, silhouette: 'standard', accent: '#F2B8C6' },
   },
   {
@@ -291,6 +308,7 @@ export const STYLES: Style[] = [
     blurb: "He's tired. He's proud. He's grilling.",
     description: 'Dignified gray scattered through the muzzle. Slightly relaxed silhouette. Conveys gravitas.',
     groomerBrief: 'Pet-safe silver highlight on muzzle. Body left at 1.5", relaxed line. No styling on top of head.',
+    referenceImage: 'father-figure.jpg',
     coat: { bodyFluff: 0.85, headFluff: 0.85, earFluff: 0.8, silhouette: 'standard', tone: '#A99B86' },
   },
   {
@@ -301,6 +319,7 @@ export const STYLES: Style[] = [
     blurb: 'Cannot speak. Says everything.',
     description: 'High-contrast black and white. Dramatic. Era-appropriate.',
     groomerBrief: 'Bath with brightening shampoo to amplify natural contrast in the coat. No styling beyond breed default.',
+    referenceImage: 'silent-film.jpg',
     coat: { bodyFluff: 0.8, headFluff: 0.9, earFluff: 0.85, silhouette: 'standard', saturate: 0 },
   },
 ]
