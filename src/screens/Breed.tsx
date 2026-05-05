@@ -1,49 +1,41 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { BackButton, Button, ScreenContainer, Scroll, TopBar } from '../components/ui'
 import { BREEDS } from '../data/breeds'
 import { back, getState, setState, startGeneration, useStore } from '../state/store'
 
 export function Breed() {
-  // App auto-detection guess: in MVP, we just default to Goldendoodle
-  // (a top-volume breed). Per design doc, real version uses an on-device
-  // detector; we surface the guess and let the user override.
+  // App auto-detection guess: in MVP, we just default to Goldendoodle.
+  // Per design doc, real version uses an on-device detector; here we show
+  // a single guess and let the user override with free text if it's wrong.
   const dog = useStore(s => s.dog)
   const [breedId, setBreedId] = useState(dog?.breedId ?? 'goldendoodle')
-  const [query, setQuery] = useState('')
   const [customName, setCustomName] = useState<string | null>(dog?.customBreedName ?? null)
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return BREEDS
-    return BREEDS.filter(b => b.name.toLowerCase().includes(q))
-  }, [query])
-
-  const trimmed = query.trim()
-  const hasExactMatch = filtered.some(b => b.name.toLowerCase() === trimmed.toLowerCase())
-  const showCustomSuggest = trimmed.length > 1 && !hasExactMatch
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(customName ?? '')
 
   const breed = BREEDS.find(b => b.id === breedId)!
   const displayName = customName ?? breed.name
   const displayHint = customName ? 'custom breed — auto-pick uses mixed coat defaults' : breed.coatHint
 
-  const pickPreset = (id: string) => {
-    setBreedId(id)
-    setCustomName(null)
+  const saveOverride = () => {
+    const v = draft.trim()
+    if (!v) return
+    setCustomName(v)
+    setBreedId('mixed') // mixed-coat defaults for auto-pick logic
+    setEditing(false)
   }
 
-  const pickCustom = () => {
-    setCustomName(trimmed)
-    setBreedId('mixed') // fall back to mixed for the auto-pick logic
+  const reset = () => {
+    setCustomName(null)
+    setBreedId('goldendoodle')
+    setDraft('')
+    setEditing(false)
   }
 
   const onContinue = () => {
     const cur = getState().dog
     if (!cur) return
-    setState({
-      dog: { ...cur, breedId, customBreedName: customName ?? undefined },
-    })
-    // Auto-pick the highest-wow style and start generating immediately —
-    // first-run flow per the design doc: no browsing, no decision fatigue.
+    setState({ dog: { ...cur, breedId, customBreedName: customName ?? undefined } })
     const fallback = BREEDS.find(b => b.id === 'mixed')!
     const target = customName ? fallback : breed
     startGeneration(target.autoPickStyleId)
@@ -53,69 +45,63 @@ export function Breed() {
     <ScreenContainer>
       <TopBar title="Breed check" left={<BackButton onClick={() => back()} />} />
 
-      <Scroll className="px-5 pt-2 pb-6">
-        <div className="mb-3">
-          <p className="text-[11px] uppercase tracking-widest text-ink/45 mb-1">
-            {customName ? 'Custom' : 'Auto-detected'}
-          </p>
-          <h2 className="font-display text-3xl tracking-tight">
-            We think this is a <span className="italic">{displayName}</span>.
-          </h2>
-          <p className="text-sm text-ink/60 mt-1">{displayHint}. Tap to override if we're cooking.</p>
-        </div>
+      <Scroll className="px-5 pt-6 pb-6">
+        <p className="text-[11px] uppercase tracking-widest text-ink/45 mb-1">
+          {customName ? 'Custom' : 'Auto-detected'}
+        </p>
+        <h2 className="font-display text-[40px] leading-[1.05] tracking-tight">
+          We think this is a <span className="italic">{displayName}</span>.
+        </h2>
+        <p className="text-sm text-ink/60 mt-2">{displayHint}.</p>
 
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Search or type your dog's breed"
-          className="w-full h-12 px-4 mt-4 rounded-xl bg-ink/5 outline-none focus:bg-ink/10 transition-colors text-sm"
-        />
-
-        <div className="grid grid-cols-1 gap-1.5 mt-3">
-          {filtered.map(b => {
-            const selected = !customName && breedId === b.id
-            return (
-              <button
-                key={b.id}
-                onClick={() => pickPreset(b.id)}
-                className={`press flex items-center justify-between px-4 h-14 rounded-2xl text-left transition-colors ${
-                  selected ? 'bg-ink text-cream' : 'bg-ink/5 text-ink hover:bg-ink/10'
-                }`}
-              >
-                <div>
-                  <div className="text-sm font-medium tracking-tight">{b.name}</div>
-                  <div className={`text-[11px] ${selected ? 'text-cream/65' : 'text-ink/55'}`}>{b.coatHint}</div>
-                </div>
-                {selected && <Check />}
-              </button>
-            )
-          })}
-
-          {showCustomSuggest && (
+        {!editing ? (
+          <div className="mt-8 flex flex-col gap-2">
             <button
-              onClick={pickCustom}
-              className={`press flex items-center justify-between px-4 h-14 rounded-2xl text-left transition-colors border-2 border-dashed ${
-                customName === trimmed
-                  ? 'bg-ink text-cream border-ink'
-                  : 'bg-cream text-ink border-ink/15 hover:border-ink/35'
-              }`}
+              onClick={() => {
+                setDraft(customName ?? '')
+                setEditing(true)
+              }}
+              className="press text-sm text-ink/65 hover:text-ink underline underline-offset-4 self-start"
             >
-              <div>
-                <div className="text-sm font-medium tracking-tight">Use "{trimmed}"</div>
-                <div className={`text-[11px] ${customName === trimmed ? 'text-cream/65' : 'text-ink/55'}`}>
-                  Custom breed · we'll use mixed-coat defaults
-                </div>
-              </div>
-              {customName === trimmed && <Check />}
+              Not quite? Enter your dog's breed →
             </button>
-          )}
+            {customName && (
+              <button
+                onClick={reset}
+                className="press text-xs text-ink/45 hover:text-ink/70 self-start"
+              >
+                Clear override
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="mt-8 rounded-2xl bg-cream border border-ink/10 p-4">
+            <label className="block text-[11px] uppercase tracking-widest text-ink/45 mb-2">
+              Your dog's breed
+            </label>
+            <input
+              autoFocus
+              value={draft}
+              onChange={e => setDraft(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') saveOverride()
+                if (e.key === 'Escape') setEditing(false)
+              }}
+              placeholder="e.g. Cavapoo, Border Collie mix, Xolo"
+              className="w-full h-12 px-4 rounded-xl bg-ink/5 outline-none focus:bg-ink/10 transition-colors text-sm"
+            />
+            <div className="flex gap-2 mt-3">
+              <Button onClick={saveOverride} disabled={!draft.trim()}>
+                Save
+              </Button>
+              <Button variant="ghost" onClick={() => setEditing(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
 
-          {filtered.length === 0 && !showCustomSuggest && (
-            <p className="text-sm text-ink/50 px-1 py-3">No matches. Type a few more letters.</p>
-          )}
-        </div>
-
-        <div className="mt-6 rounded-2xl bg-cream border border-ink/5 p-4">
+        <div className="mt-10 rounded-2xl bg-cream border border-ink/5 p-4">
           <p className="text-xs font-semibold tracking-tight mb-1">Next: one free generation.</p>
           <p className="text-xs text-ink/65 leading-relaxed">
             We pick the style. We pick the wow. You don't have to decide. After, you can browse the library — that part's Pro.
@@ -129,13 +115,5 @@ export function Breed() {
         </Button>
       </div>
     </ScreenContainer>
-  )
-}
-
-function Check() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path d="M3 9.5 7 13l8-8" stroke="#FAF6EE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
   )
 }
