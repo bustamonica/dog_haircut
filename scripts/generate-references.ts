@@ -16,8 +16,12 @@
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import * as url from 'node:url'
-import 'dotenv/config'
+import dotenv from 'dotenv'
 import { STYLES } from '../src/data/styles.ts'
+
+// Load .env.local first (matches what Vite does), then fall back to .env.
+dotenv.config({ path: '.env.local' })
+dotenv.config({ path: '.env' })
 
 const API_KEY = process.env.GEMINI_API_KEY
 if (!API_KEY) {
