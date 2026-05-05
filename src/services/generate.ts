@@ -1,17 +1,13 @@
 import type { Style } from '../data/styles'
 
 /**
- * Real instruction-based image editing via Replicate (FLUX Kontext Pro).
- * Unlike img2img-with-strength (which is really a color/style nudge),
- * Kontext takes an *edit instruction* and re-renders the targeted region
- * while preserving the rest of the image — including the dog's identity.
+ * Real instruction-based image editing via Google's Gemini 2.5 Flash Image
+ * (a.k.a. "nano-banana"). Takes the user's photo + a coat-edit instruction
+ * and returns a re-rendered image with the requested haircut, preserving
+ * dog identity, pose, and background.
  *
- * This matches the design doc's intent: "same dog, same pose, different
- * coat." Identity preservation comes from the model itself, no IP-Adapter
- * Face required for v0.
- *
- * Auth: REPLICATE_API_TOKEN is injected by the Vite dev server proxy
- * (see vite.config.ts). The browser never sees the token.
+ * Auth: GEMINI_API_KEY is injected by the Vite dev server proxy
+ * (see vite.config.ts). The browser never sees the key.
  *
  * Opt in by setting VITE_USE_REAL_GENERATION=true in .env.local.
  */
@@ -20,26 +16,27 @@ export const REAL_GENERATION_ENABLED =
   (import.meta.env.VITE_USE_REAL_GENERATION as string | undefined) === 'true'
 
 const MODEL =
-  (import.meta.env.VITE_REPLICATE_MODEL as string | undefined) ||
-  'black-forest-labs/flux-kontext-pro'
+  (import.meta.env.VITE_GEMINI_MODEL as string | undefined) ||
+  'gemini-2.5-flash-image'
 
-type Prediction = {
-  id: string
-  status: 'starting' | 'processing' | 'succeeded' | 'failed' | 'canceled'
-  output?: string | string[] | null
-  error?: string | null
-  urls?: { get?: string; cancel?: string }
+type Part =
+  | { text: string }
+  | { inlineData: { mimeType: string; data: string } }
+
+type Candidate = {
+  content?: { parts?: Part[] }
+  finishReason?: string
 }
 
-/**
- * Build an edit instruction targeted at the dog's coat. Kontext is much
- * happier with directives ("change the haircut to X") than with full-scene
- * descriptions. Per-style overrides keep the gag styles (mohawk, dye jobs,
- * lion cut) explicit.
- */
+type GeminiResponse = {
+  candidates?: Candidate[]
+  promptFeedback?: { blockReason?: string }
+  error?: { message?: string }
+}
+
 function buildEditInstruction(style: Style): string {
   const tail =
-    'Keep the exact same dog (same face, eyes, nose, ears, markings), same pose, same camera angle, same background. Photorealistic pet photography.'
+    'Keep the exact same dog (same face, eyes, nose, ears, markings), same pose, same camera angle, same background. Photorealistic pet photography, sharp focus, natural lighting.'
 
   const overrides: Record<string, string> = {
     mohawk:
@@ -75,17 +72,17 @@ function buildEditInstruction(style: Style): string {
     'frosted-tips':
       'Give the dog frosted tips: lighten the very ends of the coat to a pale blonde, especially on top of the head and back, while keeping the base coat color natural.',
     'autumn-drop':
-      'Tint the dog\'s coat to warm copper / pumpkin tones, keeping the same haircut shape but with a richer autumnal coat color.',
+      "Tint the dog's coat to warm copper / pumpkin tones, keeping the same haircut shape but with a richer autumnal coat color.",
     'winter-fluff':
-      'Make the dog\'s coat extra full, fluffy and well-brushed — peak winter coat, no length removed, soft and voluminous.',
+      "Make the dog's coat extra full, fluffy and well-brushed — peak winter coat, no length removed, soft and voluminous.",
     'designer-paloma':
       'Give the dog asymmetric ear lengths (one ear noticeably longer than the other) and dye one front paw a soft slate-blue color. Keep the rest of the coat natural.',
     'designer-emil':
       'Give the dog a brutalist square-scissored haircut with sharp 90-degree edges at the chest, hips, and head. Severe geometric silhouette.',
     rugrat:
-      'Let the dog\'s coat grow to full floor-length, parted down the spine, with a small topknot on the head pulling the fringe out of the eyes — like a tiny walking rug.',
+      "Let the dog's coat grow to full floor-length, parted down the spine, with a small topknot on the head pulling the fringe out of the eyes — like a tiny walking rug.",
     astroturf:
-      'Dye the dog\'s body coat a vivid bright pet-safe green color. Leave the face natural color. Keep the same haircut shape.',
+      "Dye the dog's body coat a vivid bright pet-safe green color. Leave the face natural color. Keep the same haircut shape.",
     'sad-prince':
       'Give the dog long mournful ear feathering scissored to a point, with a slightly windswept body coat.',
     bouncer:
@@ -93,7 +90,7 @@ function buildEditInstruction(style: Style): string {
     'spring-bloom':
       'Give the dog a clean light short body cut, with the very tips of the ears tinted soft pastel pink.',
     'father-figure':
-      'Add dignified silver / grey highlights to the dog\'s muzzle, like a distinguished older dog. Keep the haircut relaxed and slightly longer on the body.',
+      "Add dignified silver / grey highlights to the dog's muzzle, like a distinguished older dog. Keep the haircut relaxed and slightly longer on the body.",
     'silent-film':
       'Render the dog in high-contrast black and white only, like a vintage silent-film photograph.',
   }
@@ -105,54 +102,17 @@ function buildEditInstruction(style: Style): string {
   return `${directive} ${tail}`
 }
 
-async function postPrediction(image: string, prompt: string) {
-  const res = await fetch(`/api/replicate/models/${MODEL}/predictions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      input: {
-        prompt,
-        input_image: image,
-        aspect_ratio: 'match_input_image',
-        output_format: 'jpg',
-        safety_tolerance: 2,
-        prompt_upsampling: false,
-      },
-    }),
-  })
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => '')
-    throw new Error(`Replicate POST failed: ${res.status} ${text.slice(0, 240)}`)
+function splitDataUrl(dataUrl: string): { mimeType: string; base64: string } {
+  const match = dataUrl.match(/^data:([^;]+);base64,(.*)$/)
+  if (!match) {
+    // Assume jpeg if no header
+    return { mimeType: 'image/jpeg', base64: dataUrl }
   }
-  return (await res.json()) as Prediction
-}
-
-async function getPrediction(id: string) {
-  const res = await fetch(`/api/replicate/predictions/${id}`)
-  if (!res.ok) {
-    throw new Error(`Replicate GET failed: ${res.status}`)
-  }
-  return (await res.json()) as Prediction
-}
-
-async function poll(id: string, signal: AbortSignal): Promise<Prediction> {
-  // Replicate's `Prefer: wait=30` (set by the proxy) often returns a finished
-  // prediction on the initial POST; this loop is mostly a safety net.
-  const deadline = Date.now() + 120_000
-  while (Date.now() < deadline) {
-    if (signal.aborted) throw new Error('aborted')
-    const p = await getPrediction(id)
-    if (p.status === 'succeeded' || p.status === 'failed' || p.status === 'canceled') {
-      return p
-    }
-    await new Promise(r => setTimeout(r, 1500))
-  }
-  throw new Error('Replicate prediction timed out after 120s')
+  return { mimeType: match[1], base64: match[2] }
 }
 
 export type GenerateInput = {
-  photo: string // data URL (or any URL Replicate can fetch)
+  photo: string
   style: Style
   breedId: string
   customBreedName?: string
@@ -171,22 +131,58 @@ export async function generateImage(input: GenerateInput): Promise<GenerateResul
     return { ok: false, reason: 'no source photo' }
   }
 
+  const { mimeType, base64 } = splitDataUrl(input.photo)
   const prompt = buildEditInstruction(input.style)
-  const signal = input.signal ?? new AbortController().signal
 
   try {
-    let pred = await postPrediction(input.photo, prompt)
-    if (pred.status !== 'succeeded' && pred.status !== 'failed' && pred.status !== 'canceled') {
-      pred = await poll(pred.id, signal)
+    const res = await fetch(`/api/gemini/models/${MODEL}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: input.signal,
+      body: JSON.stringify({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: prompt },
+              { inlineData: { mimeType, data: base64 } },
+            ],
+          },
+        ],
+        generationConfig: {
+          // Image-capable response. The model emits image bytes inline.
+          responseModalities: ['IMAGE'],
+        },
+      }),
+    })
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => '')
+      return { ok: false, reason: `Gemini ${res.status}: ${text.slice(0, 240)}` }
     }
-    if (pred.status !== 'succeeded' || !pred.output) {
-      return { ok: false, reason: pred.error ?? `status: ${pred.status}` }
+
+    const data = (await res.json()) as GeminiResponse
+
+    if (data.error?.message) {
+      return { ok: false, reason: data.error.message }
     }
-    const url = Array.isArray(pred.output) ? pred.output[0] : pred.output
-    if (typeof url !== 'string' || !url) {
-      return { ok: false, reason: 'no output URL' }
+    if (data.promptFeedback?.blockReason) {
+      return { ok: false, reason: `blocked: ${data.promptFeedback.blockReason}` }
     }
-    return { ok: true, outputUrl: url }
+
+    const parts = data.candidates?.[0]?.content?.parts ?? []
+    const imagePart = parts.find(
+      (p): p is { inlineData: { mimeType: string; data: string } } =>
+        'inlineData' in p && !!p.inlineData?.data,
+    )
+    if (!imagePart) {
+      const finish = data.candidates?.[0]?.finishReason
+      return { ok: false, reason: finish ? `no image (${finish})` : 'no image in response' }
+    }
+
+    const outMime = imagePart.inlineData.mimeType || 'image/png'
+    const outputUrl = `data:${outMime};base64,${imagePart.inlineData.data}`
+    return { ok: true, outputUrl }
   } catch (err) {
     return { ok: false, reason: err instanceof Error ? err.message : String(err) }
   }
