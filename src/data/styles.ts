@@ -180,17 +180,6 @@ export const STYLES: Style[] = [
     coat: { bodyFluff: 0.6, headFluff: 1, earFluff: 0.95, silhouette: 'standard' },
   },
   {
-    id: 'frosted-tips',
-    name: 'Frosted Tips',
-    category: 'fun',
-    pro: true,
-    blurb: 'It is 2003 again.',
-    description: 'Light blonde tipping on a darker base. The dog now skateboards.',
-    groomerBrief: 'Subtle peroxide tipping (pet-safe color). Texture cut on top, leave length on body.',
-    referenceImage: 'frosted-tips.jpg',
-    coat: { bodyFluff: 0.85, headFluff: 0.95, earFluff: 0.85, silhouette: 'standard', accent: '#FFE9A8' },
-  },
-  {
     id: 'business-casual',
     name: 'Business Casual',
     category: 'groomer-real',

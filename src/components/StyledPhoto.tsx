@@ -115,12 +115,6 @@ function effectsFor(style: Style): Effect {
         overlay: 'linear-gradient(180deg, rgba(26,24,21,0.55) 0%, rgba(26,24,21,0.55) 38%, transparent 60%)',
         blendOverlay: 'multiply',
       }
-    case 'frosted-tips':
-      return {
-        filter: 'brightness(1.18) saturate(1.3) contrast(1.1)',
-        overlay: 'radial-gradient(circle at 50% 25%, rgba(255,233,168,0.55), transparent 55%)',
-        blendOverlay: 'screen',
-      }
     case 'business-casual':
       return { filter: 'contrast(1.08) brightness(1.04) saturate(0.95)' }
     case 'autumn-drop':

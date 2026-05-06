@@ -67,8 +67,6 @@ export function buildEditInstruction(style: Style): string {
       'Give the dog dramatic volume on the head and ears with a clean short body, so the head reads as the focal point.',
     'witness-protection':
       'Give the dog a long heavy fringe of fur falling forward over the eyes and muzzle, completely covering the face.',
-    'frosted-tips':
-      'Give the dog frosted tips: lighten the very ends of the coat to a pale blonde, especially on top of the head and back, while keeping the base coat color natural.',
     'autumn-drop':
       "Tint the dog's coat to warm copper / pumpkin tones, keeping the same haircut shape but with a richer autumnal coat color.",
     'winter-fluff':
