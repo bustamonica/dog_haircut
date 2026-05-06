@@ -3,7 +3,6 @@ import { back, reset, useStore } from '../state/store'
 
 export function Settings() {
   const isPro = useStore(s => s.isPro)
-  const dog = useStore(s => s.dog)
   return (
     <ScreenContainer>
       <TopBar title="Settings" left={<BackButton onClick={() => back()} />} />
@@ -12,24 +11,6 @@ export function Settings() {
         <Section title="Subscription">
           <Row label="Plan" value={isPro ? 'Pro' : 'Free'} />
           <Row label="Renews" value={isPro ? 'May 2027' : '—'} />
-        </Section>
-
-        <Section title="Dog">
-          <Row label="Breed" value={dog?.customBreedName ?? dog?.breedId ?? '—'} />
-          <p className="text-[11px] text-ink/45 px-3 pb-3">
-            One dog per account. Multi-dog support is on the list.
-          </p>
-        </Section>
-
-        <Section title="Notifications">
-          <Row label="Style drops" value="Monthly" />
-          <Row label="Grooming reminder" value="Every 6 weeks" />
-        </Section>
-
-        <Section title="About">
-          <Row label="Version" value="0.1.0 · build 4f2c" />
-          <Row label="Brand voice" value="Internet-pilled" />
-          <Row label="Cats" value="Not supported" />
         </Section>
 
         <div className="pt-2">
