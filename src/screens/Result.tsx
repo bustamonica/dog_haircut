@@ -50,12 +50,19 @@ export function Result() {
 
       <Scroll className="px-5 pt-3 pb-24">
         <div className="flex items-center gap-2 mb-3">
-          <span className="font-display italic text-2xl tracking-tight">{style.name}</span>
+          <span className="sparkle" style={{ color: style.brand }} aria-hidden />
+          <span
+            className="font-display italic text-3xl tracking-tight px-3 py-0.5 rounded-2xl"
+            style={{ background: style.brand, color: '#1A1815' }}
+          >
+            {style.name}
+          </span>
           {style.pro && <span className="chip chip-dark text-[10px] uppercase tracking-widest">pro</span>}
         </div>
         <p className="text-sm text-ink/65 leading-snug mb-4">{style.blurb}</p>
 
-        <div className="aspect-[4/5] w-full sticker mb-3 relative overflow-hidden rounded-3xl">
+        <div className="aspect-[4/5] w-full sticker mb-3 relative overflow-hidden rounded-3xl isolate">
+          <div className="brand-halo" style={{ ['--brand' as never]: style.brand }} />
           {view === 'morph' ? (
             <MorphVideo
               beforePhoto={beforePhoto}
@@ -126,26 +133,31 @@ export function Result() {
       {/* Sticky action bar */}
       <div className="px-5 pb-6 pt-3 border-t border-ink/5 bg-cream flex flex-col gap-2">
         <Button
-          variant="pro"
-          className="w-full"
-          onClick={onReroll}
+          size="lg"
+          className="w-full chrome"
+          onClick={() => {
+            try { (navigator as Navigator & { vibrate?: (d: number) => void }).vibrate?.(8) } catch { /* noop */ }
+            onReroll()
+          }}
         >
-          <RerollIcon /> {isPro ? 'Re-roll the look' : 'Re-roll · Pro'}
+          <span className="sparkle text-cream" aria-hidden />
+          <RerollIcon />
+          {isPro ? 'Re-roll the look' : 'Re-roll · Pro'}
+          <span className="sparkle text-cream" aria-hidden style={{ animationDelay: '0.6s' }} />
         </Button>
         <div className="flex gap-2">
-          <Button
-            variant={gen.savedToBoard ? 'primary' : 'secondary'}
-            className="flex-1"
+          <SaveButton
+            saved={gen.savedToBoard}
+            brand={style.brand}
             onClick={() => {
+              try { (navigator as Navigator & { vibrate?: (d: number) => void }).vibrate?.(6) } catch { /* noop */ }
               if (!isPro && freeGenUsed) {
                 navigate('paywall')
                 return
               }
               toggleSave(gen.id)
             }}
-          >
-            {gen.savedToBoard ? '✓ Saved' : 'Save to Board'}
-          </Button>
+          />
           <Button
             variant="secondary"
             className="flex-1"
@@ -261,7 +273,7 @@ function CompareView({
 function ShareIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M8 1.5v8.5M5.5 4 8 1.5 10.5 4M3 8.5v4a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5v-4" stroke="#1A1815" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8 1.5v8.5M5.5 4 8 1.5 10.5 4M3 8.5v4a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5v-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -272,5 +284,65 @@ function RerollIcon() {
       <path d="M3 6a5 5 0 0 1 9-2M13 10a5 5 0 0 1-9 2" stroke="#FAF6EE" strokeWidth="1.6" strokeLinecap="round" />
       <path d="M12 1.5V4h-2.5M4 14.5V12h2.5" stroke="#FAF6EE" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
+  )
+}
+
+function SaveButton({
+  saved,
+  brand,
+  onClick,
+}: {
+  saved: boolean
+  brand: string
+  onClick: () => void
+}) {
+  const [burst, setBurst] = useState(0)
+  // bumping the key on each save click re-mounts the confetti for a fresh
+  // animation. cleared after the animation duration.
+  return (
+    <button
+      onClick={() => {
+        if (!saved) setBurst(b => b + 1)
+        onClick()
+      }}
+      className={`press relative flex-1 h-11 px-5 inline-flex items-center justify-center gap-2 font-medium tracking-tight rounded-full text-sm transition-colors overflow-hidden ${
+        saved ? 'text-ink' : 'text-ink bg-ink/5 hover:bg-ink/10'
+      }`}
+      style={saved ? { background: brand } : undefined}
+    >
+      {saved ? '✓ Saved' : 'Save to Board'}
+      {burst > 0 && (
+        <Confetti
+          key={burst}
+          brand={brand}
+          onDone={() => setBurst(0)}
+        />
+      )}
+    </button>
+  )
+}
+
+function Confetti({ brand, onDone }: { brand: string; onDone: () => void }) {
+  // 12 dots, evenly distributed, each launched on a random slight angle.
+  const dots = Array.from({ length: 12 }).map((_, i) => {
+    const angle = (i / 12) * Math.PI * 2 + (Math.random() - 0.5) * 0.4
+    const dist = 70 + Math.random() * 30
+    return {
+      key: i,
+      style: {
+        ['--dx' as never]: `${Math.cos(angle) * dist}px`,
+        ['--dy' as never]: `${Math.sin(angle) * dist}px`,
+        animationDelay: `${Math.random() * 80}ms`,
+      } as React.CSSProperties,
+    }
+  })
+  // Schedule cleanup after animation
+  setTimeout(onDone, 800)
+  return (
+    <span className="confetti" style={{ ['--brand' as never]: brand }} aria-hidden>
+      {dots.map(d => (
+        <span key={d.key} style={d.style} />
+      ))}
+    </span>
   )
 }

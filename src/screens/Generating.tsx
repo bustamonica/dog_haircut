@@ -140,10 +140,11 @@ export function Generating() {
                 )}
               </div>
               <div
-                className="absolute inset-x-0 h-[3px] bg-ember/80"
+                className="absolute inset-x-0 h-[3px]"
                 style={{
                   top: `${progress}%`,
-                  boxShadow: '0 0 24px 6px rgba(226,89,44,0.55)',
+                  background: style.brand,
+                  boxShadow: `0 0 24px 6px ${style.brand}88`,
                   transition: 'top 240ms linear',
                 }}
               />

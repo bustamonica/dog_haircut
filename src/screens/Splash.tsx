@@ -23,14 +23,25 @@ export function Splash() {
   const style = STYLES_BY_ID[ROTATION[idx]]
 
   return (
-    <div className="flex flex-col h-full bg-bone">
-      <div className="flex items-center justify-between px-5 pt-6 pb-2">
+    <div className="flex flex-col h-full y2k-bg relative">
+      {/* sparkles */}
+      <span className="sparkle absolute top-20 left-8 text-rust" aria-hidden />
+      <span className="sparkle absolute top-32 right-10 text-ember" aria-hidden style={{ animationDelay: '0.6s' }} />
+      <span className="sparkle absolute bottom-32 left-12 text-ink/70" aria-hidden style={{ animationDelay: '1.2s' }} />
+      <span className="sparkle absolute top-1/2 right-6 text-rust" aria-hidden style={{ animationDelay: '1.8s' }} />
+
+      <div className="flex items-center justify-between px-5 pt-6 pb-2 relative">
         <Wordmark />
         <span className="chip text-[10px] uppercase tracking-widest">v0.1</span>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 text-center relative">
         <div className="relative w-full max-w-sm aspect-square">
+          {/* brand halo behind the after card */}
+          <div
+            className="brand-halo"
+            style={{ ['--brand' as never]: style.brand }}
+          />
           {/* Before */}
           <div
             key={`before-${idx}`}
@@ -48,7 +59,12 @@ export function Splash() {
             style={{ animationDelay: '200ms', transformOrigin: 'top right' }}
           >
             <DogPortrait style={style} bgSeed={idx + 1} />
-            <div className="absolute top-3 right-3 chip chip-dark">{style.name}</div>
+            <div
+              className="absolute top-3 right-3 chip text-[10px] font-semibold uppercase tracking-widest"
+              style={{ background: style.brand, color: '#1A1815' }}
+            >
+              {style.name}
+            </div>
             <div className="watermark">coif</div>
           </div>
         </div>
@@ -64,12 +80,12 @@ export function Splash() {
         </p>
       </div>
 
-      <div className="px-5 pb-8 pt-4 flex flex-col gap-2">
-        <Button size="lg" onClick={() => navigate('capture')}>
-          Add your dog
+      <div className="px-5 pb-8 pt-4 flex flex-col gap-2 relative">
+        <Button size="lg" className="chrome" onClick={() => navigate('capture')}>
+          <span className="sparkle text-cream" aria-hidden /> Add your dog
         </Button>
         <p className="text-center text-xs text-ink/45 mt-1">
-          One free generation. No card. No trial. No vibes-based pricing later.
+          One free re-roll. No card. No trial. No vibes-based pricing later.
         </p>
       </div>
     </div>

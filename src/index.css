@@ -190,3 +190,109 @@ button, a {
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
 }
+
+/* ─── Y2K accents ──────────────────────────────────────────────────────── */
+
+/* Chrome / silver gloss for hero buttons. Layered: base bevel + diagonal
+   sheen. Hover/press shifts the sheen for a "live" feel. */
+.chrome {
+  background:
+    linear-gradient(135deg,
+      rgba(255, 255, 255, 0.65) 0%,
+      rgba(255, 255, 255, 0.10) 35%,
+      rgba(255, 255, 255, 0.0)  55%,
+      rgba(255, 255, 255, 0.10) 75%,
+      rgba(255, 255, 255, 0.40) 100%
+    ),
+    linear-gradient(180deg, #1A1815 0%, #2A2622 100%);
+  color: #FAF6EE;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.chrome::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 65%
+  );
+  background-size: 220% 100%;
+  background-position: 200% 0;
+  animation: chrome-sweep 3.6s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+@keyframes chrome-sweep {
+  0%   { background-position: 200% 0; }
+  60%  { background-position: -120% 0; }
+  100% { background-position: -120% 0; }
+}
+
+/* Soft Y2K gradient backdrop. Uses bone as the tint floor, blends a faint
+   pink/cyan/pink wash on top. Subtle — keeps the editorial feel. */
+.y2k-bg {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 61, 138, 0.18), transparent 40%),
+    radial-gradient(circle at 85% 28%, rgba(94, 200, 229, 0.20), transparent 45%),
+    radial-gradient(circle at 50% 95%, rgba(255, 200, 220, 0.30), transparent 55%),
+    #F4EFE6;
+}
+
+/* Sparkle / star burst — a 4-point star drawn in CSS that twinkles.
+   Stack two with different delays for a classic Y2K "ping" pair. */
+.sparkle {
+  width: 14px;
+  height: 14px;
+  background:
+    linear-gradient(180deg, transparent 45%, currentColor 45%, currentColor 55%, transparent 55%),
+    linear-gradient(90deg,  transparent 45%, currentColor 45%, currentColor 55%, transparent 55%);
+  -webkit-mask-image: radial-gradient(circle, white 6%, transparent 60%);
+          mask-image: radial-gradient(circle, white 6%, transparent 60%);
+  display: inline-block;
+  animation: twinkle 2.4s ease-in-out infinite;
+}
+@keyframes twinkle {
+  0%, 100% { transform: scale(0.6) rotate(0deg);   opacity: 0.55; }
+  50%      { transform: scale(1.1) rotate(45deg); opacity: 1; }
+}
+
+/* Confetti burst — used on Save to Board. Renders 12 dots from the center.
+   The wrapper sets `--brand` so the dots inherit per-style accent color. */
+.confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.confetti span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--brand, #FF3D8A);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: confetti-pop 700ms ease-out forwards;
+}
+@keyframes confetti-pop {
+  0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx, 0)), calc(-50% + var(--dy, 0))) scale(0.9); opacity: 0; }
+}
+
+/* Brand-tinted soft glow — used as a halo behind the hero photo on the
+   result screen. Gets the per-style brand color via inline style. */
+.brand-halo {
+  position: absolute;
+  inset: -28px;
+  border-radius: inherit;
+  background: radial-gradient(circle, var(--brand, #FF3D8A) 0%, transparent 65%);
+  opacity: 0.55;
+  filter: blur(28px);
+  z-index: -1;
+  pointer-events: none;
+}

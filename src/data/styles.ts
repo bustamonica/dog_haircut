@@ -23,6 +23,12 @@ export type Style = {
    * Example: 'mohawk.jpg' → loaded from /references/mohawk.jpg.
    */
   referenceImage?: string
+  /**
+   * Y2K accent color for this style. Used to tint the result-screen chip,
+   * scan-line, share caption, and other accents so each generation has its
+   * own visual personality on top of the cream/ink base.
+   */
+  brand: string
   coat: {
     bodyFluff: number
     headFluff: number
@@ -45,6 +51,7 @@ export const STYLES: Style[] = [
     groomerBrief:
       'Teddy bear cut: 1–1.5" body length, scissor-finished. Round head, round muzzle, round paws. No shaved face. Blend ears into head shape.',
     referenceImage: 'teddy-bear.jpg',
+    brand: '#FFB89B',
     coat: { bodyFluff: 0.9, headFluff: 0.95, earFluff: 0.85, silhouette: 'standard' },
   },
   {
@@ -56,6 +63,7 @@ export const STYLES: Style[] = [
     description: 'Short, even all over. Easy to maintain, hard to mess up.',
     groomerBrief: 'Puppy cut: 1/2" all over with #4F or #5F blade. Tidy face and feet, no scissor work needed.',
     referenceImage: 'puppy-cut.jpg',
+    brand: '#FFD7B5',
     coat: { bodyFluff: 0.55, headFluff: 0.6, earFluff: 0.55, silhouette: 'standard' },
   },
   {
@@ -67,6 +75,7 @@ export const STYLES: Style[] = [
     description: 'The shortest reasonable length. For when your dog is a swamp creature by week 3.',
     groomerBrief: 'Kennel cut: #7F blade body, #10 sanitary. Clean ears and feet. Function over form.',
     referenceImage: 'kennel-cut.jpg',
+    brand: '#A8A398',
     coat: { bodyFluff: 0.35, headFluff: 0.4, earFluff: 0.35, silhouette: 'standard' },
   },
   {
@@ -78,6 +87,7 @@ export const STYLES: Style[] = [
     description: 'Body shaved short, full mane around head and shoulders, tail tuft at the end.',
     groomerBrief: 'Lion cut: #7F body, leave full mane to shoulders and around face. Pom on tail tip. Clean feet.',
     referenceImage: 'lion-cut.jpg',
+    brand: '#FF6B2A',
     coat: { bodyFluff: 0.25, headFluff: 1, earFluff: 0.85, silhouette: 'lion-mane' },
   },
   {
@@ -89,6 +99,7 @@ export const STYLES: Style[] = [
     description: 'Sculpted poodle silhouette. Pompoms on legs and tail, shaved hindquarters and face.',
     groomerBrief: 'Continental clip: shave hindquarters, face, and feet. Leave rosettes on hips, bracelets on legs, full pom on tail. Topknot banded.',
     referenceImage: 'continental.jpg',
+    brand: '#C8C8D0',
     coat: { bodyFluff: 0.5, headFluff: 1, earFluff: 0.7, silhouette: 'sculpted' },
   },
   {
@@ -100,6 +111,7 @@ export const STYLES: Style[] = [
     description: 'Maximum round fluff, scissor-finished. Show-style without the show.',
     groomerBrief: 'Round-scissored finish at 2"+, fluffed and powdered. No clipper marks. Bichon-style head.',
     referenceImage: 'powder-puff.jpg',
+    brand: '#FFC8DC',
     coat: { bodyFluff: 1, headFluff: 1, earFluff: 0.95, silhouette: 'standard' },
   },
   {
@@ -111,6 +123,7 @@ export const STYLES: Style[] = [
     description: 'Short to the skin everywhere. We know, we know — vet says it can affect coat regrowth on doubles. Pick wisely.',
     groomerBrief: '#10 blade body, #15 sanitary, light scissor on head if requested. Note: not advised for double-coated breeds.',
     referenceImage: 'summer-shave.jpg',
+    brand: '#5EC8E5',
     coat: { bodyFluff: 0.18, headFluff: 0.25, earFluff: 0.25, silhouette: 'shaved' },
   },
   {
@@ -122,6 +135,7 @@ export const STYLES: Style[] = [
     description: 'Breed-standard show coat. Fully scissored, hand-stripped where required.',
     groomerBrief: 'Breed-standard show clip per current AKC profile. Hand-stripped. Confirm event date for grow-out.',
     referenceImage: 'show-cut.jpg',
+    brand: '#C73070',
     coat: { bodyFluff: 0.85, headFluff: 0.9, earFluff: 0.9, silhouette: 'standard' },
   },
   {
@@ -133,6 +147,7 @@ export const STYLES: Style[] = [
     description: 'Body short, narrow ridge of fluff straight down the spine and through the topknot.',
     groomerBrief: '#5F body. Leave 1.5" ridge from base of skull to mid-back, scissored upright. Optional gel hold.',
     referenceImage: 'mohawk.jpg',
+    brand: '#FF3D8A',
     coat: { bodyFluff: 0.45, headFluff: 0.7, earFluff: 0.5, silhouette: 'mohawk', accent: '#1A1815' },
   },
   {
@@ -144,6 +159,7 @@ export const STYLES: Style[] = [
     description: 'Loose, layered shag. Volume on top, feathered ears like sideburns.',
     groomerBrief: 'Long body coat layered with thinning shears. Heavy feathering on ears and tail. Center part on head.',
     referenceImage: '70s-rockstar.jpg',
+    brand: '#B946D0',
     coat: { bodyFluff: 0.95, headFluff: 0.9, earFluff: 1, silhouette: 'mullet' },
   },
   {
@@ -155,6 +171,7 @@ export const STYLES: Style[] = [
     description: 'Slightly overgrown puppy cut with permanent bedhead. Eyes barely visible. Forgivable.',
     groomerBrief: 'Scruffy 1.5" body, intentionally uneven. Light face shaping but leave eye fringe. Do NOT clean up too much.',
     referenceImage: 'hes-just-a-boy.jpg',
+    brand: '#E2BD83',
     coat: { bodyFluff: 0.8, headFluff: 1, earFluff: 0.85, silhouette: 'standard', tone: '#E2BD83' },
   },
   {
@@ -166,6 +183,7 @@ export const STYLES: Style[] = [
     description: 'Deliberate volume on the head, dramatic ear feathering, body kept clean to draw the eye up.',
     groomerBrief: 'Long head + ear coat scissored for volume. Body trimmed clean at 1/2" to contrast.',
     referenceImage: 'main-character.jpg',
+    brand: '#FFD93D',
     coat: { bodyFluff: 0.45, headFluff: 1, earFluff: 1, silhouette: 'topknot' },
   },
   {
@@ -177,6 +195,7 @@ export const STYLES: Style[] = [
     description: 'All face fringe, pulled forward. Plausibly deniable identity.',
     groomerBrief: 'Leave full face fringe forward over eyes and muzzle. Body kept at 1" for contrast.',
     referenceImage: 'witness-protection.jpg',
+    brand: '#3F3F46',
     coat: { bodyFluff: 0.6, headFluff: 1, earFluff: 0.95, silhouette: 'standard' },
   },
   {
@@ -188,6 +207,7 @@ export const STYLES: Style[] = [
     description: 'Tidy face and ears, slightly longer body. The "I have things to do today" look.',
     groomerBrief: 'Face and ears scissored clean. Body 1" with #4F. Tidy feet. Sanitary trim.',
     referenceImage: 'business-casual.jpg',
+    brand: '#2D4263',
     coat: { bodyFluff: 0.6, headFluff: 0.7, earFluff: 0.6, silhouette: 'standard' },
   },
   {
@@ -199,6 +219,7 @@ export const STYLES: Style[] = [
     description: 'Warmer copper undertone, leaf-pile volume. Drops every September.',
     groomerBrief: 'Same as breed-default cut, plus a pet-safe rinse to warm the coat tone.',
     referenceImage: 'autumn-drop.jpg',
+    brand: '#C97B3F',
     coat: { bodyFluff: 0.9, headFluff: 0.95, earFluff: 0.9, silhouette: 'standard', tone: '#C97B3F' },
   },
   {
@@ -210,6 +231,7 @@ export const STYLES: Style[] = [
     description: 'Maximum length retained. The pre-cut. For January only.',
     groomerBrief: 'Bath, blow-out, deshed. NO length removed. Tidy paws and sanitary only.',
     referenceImage: 'winter-fluff.jpg',
+    brand: '#B0CFE5',
     coat: { bodyFluff: 1, headFluff: 1, earFluff: 1, silhouette: 'standard' },
   },
   {
@@ -221,6 +243,7 @@ export const STYLES: Style[] = [
     description: 'Asymmetric ear lengths, single dyed paw. Not for the dog who plays by rules.',
     groomerBrief: 'Asymmetric ears (2:1 ratio). Single front paw dyed slate blue, pet-safe. Body 3/4".',
     referenceImage: 'designer-paloma.jpg',
+    brand: '#5E7A8C',
     coat: { bodyFluff: 0.7, headFluff: 0.85, earFluff: 1, silhouette: 'standard', accent: '#5E7A8C' },
   },
   {
@@ -232,6 +255,7 @@ export const STYLES: Style[] = [
     description: 'Exaggerated boxy silhouette. Sharp 90-degree edges everywhere. The dog is now architecture.',
     groomerBrief: 'Square scissored silhouette. 90deg corners at chest, hip, and head. Lock the line. No softening.',
     referenceImage: 'designer-emil.jpg',
+    brand: '#767672',
     coat: { bodyFluff: 0.75, headFluff: 0.85, earFluff: 0.7, silhouette: 'standard' },
   },
   {
@@ -243,6 +267,7 @@ export const STYLES: Style[] = [
     description: 'Length to the floor, parted down the spine. Looks like an heirloom rug.',
     groomerBrief: 'Maximum coat retention. Brush out only. Center part along spine. Hair pulled into top knot to clear eyes.',
     referenceImage: 'rugrat.jpg',
+    brand: '#E8DDC9',
     coat: { bodyFluff: 1, headFluff: 1, earFluff: 1, silhouette: 'topknot' },
   },
   {
@@ -254,6 +279,7 @@ export const STYLES: Style[] = [
     description: 'Vivid pet-safe green tipping. The dog is a putting green now.',
     groomerBrief: 'Pet-safe green tipping (Opawz / similar). Even saturation across body. Leave face natural.',
     referenceImage: 'astroturf.jpg',
+    brand: '#44D62C',
     coat: { bodyFluff: 0.7, headFluff: 0.7, earFluff: 0.7, silhouette: 'standard', accent: '#9FCB6B' },
   },
   {
@@ -265,6 +291,7 @@ export const STYLES: Style[] = [
     description: 'Long, mournful ear feathering. Slightly windswept body. Permanent main-character melancholy.',
     groomerBrief: 'Maximum ear length scissored to a point. Body 1.5" with vertical scissor sweep front-to-back.',
     referenceImage: 'sad-prince.jpg',
+    brand: '#3A4F6E',
     coat: { bodyFluff: 0.85, headFluff: 1, earFluff: 1, silhouette: 'standard' },
   },
   {
@@ -276,6 +303,7 @@ export const STYLES: Style[] = [
     description: 'Squared shoulders, tight body, intimidating brow fringe. The dog now works the door.',
     groomerBrief: 'Square shoulder line, tight #4F body. Heavy brow fringe left forward. Clean muzzle.',
     referenceImage: 'bouncer.jpg',
+    brand: '#C8222A',
     coat: { bodyFluff: 0.55, headFluff: 0.95, earFluff: 0.55, silhouette: 'standard' },
   },
   {
@@ -287,6 +315,7 @@ export const STYLES: Style[] = [
     description: 'A clean rebirth. Even, light body, soft pastel accent on ears.',
     groomerBrief: 'Body 1/2", pet-safe pastel pink rinse on ear tips only. Brighten and deshed.',
     referenceImage: 'spring-bloom.jpg',
+    brand: '#FF9DBC',
     coat: { bodyFluff: 0.6, headFluff: 0.7, earFluff: 0.7, silhouette: 'standard', accent: '#F2B8C6' },
   },
   {
@@ -298,6 +327,7 @@ export const STYLES: Style[] = [
     description: 'Dignified gray scattered through the muzzle. Slightly relaxed silhouette. Conveys gravitas.',
     groomerBrief: 'Pet-safe silver highlight on muzzle. Body left at 1.5", relaxed line. No styling on top of head.',
     referenceImage: 'father-figure.jpg',
+    brand: '#A99B86',
     coat: { bodyFluff: 0.85, headFluff: 0.85, earFluff: 0.8, silhouette: 'standard', tone: '#A99B86' },
   },
   {
@@ -309,6 +339,7 @@ export const STYLES: Style[] = [
     description: 'High-contrast black and white. Dramatic. Era-appropriate.',
     groomerBrief: 'Bath with brightening shampoo to amplify natural contrast in the coat. No styling beyond breed default.',
     referenceImage: 'silent-film.jpg',
+    brand: '#5B5B5B',
     coat: { bodyFluff: 0.8, headFluff: 0.9, earFluff: 0.85, silhouette: 'standard', saturate: 0 },
   },
 ]
