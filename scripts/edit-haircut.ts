@@ -76,16 +76,22 @@ function buildReferencePrompt(styleName: string): string {
     "IMAGE 1 is the source: a real photo of the user's dog.",
     'IMAGE 2 is a reference: a different dog wearing the haircut we want.',
     '',
-    `Edit IMAGE 1 by re-rendering the dog's coat and grooming to match exactly the haircut, coat shape, length, sculpted volume, and styling of the dog in IMAGE 2 (the "${styleName}" cut).`,
+    `Your only task: re-render ONLY the coat and grooming of the dog in IMAGE 1 to match the haircut shown in IMAGE 2 (the "${styleName}" cut).`,
     '',
-    "Strictly preserve from IMAGE 1, unchanged: the position, pose, and stance of the dog must match IMAGE 1 exactly — same body angle, same direction the dog is facing, same head tilt, same leg positions, same camera angle, same framing and crop. The dog's face, eyes, nose, mouth, ears, markings, body proportions, breed, and color (unless the cut explicitly involves dye) must match IMAGE 1 exactly. The entire background (sky, ground, water, foliage, objects), the lighting, and depth of field must match IMAGE 1 exactly.",
+    'ABSOLUTE RULES — these override every other instruction. The output MUST satisfy ALL of these:',
     '',
-    "Strictly take from IMAGE 2: only the haircut shape — coat length, silhouette, sculpted volume, the way the fur is cut around the head, ears, body, legs, and tail. Ignore the reference dog's pose, orientation, breed, color, face, and background entirely.",
+    "(1) POSE LOCK. The dog in the output is in the IDENTICAL position to the dog in IMAGE 1: same body angle, same direction the dog is facing, same head tilt, same ear position, same mouth shape, same leg positions, same paw positions. Do not rotate, mirror, re-pose, or shift the dog. If the dog in IMAGE 1 is facing right at a 3/4 angle, the dog in the output is facing right at a 3/4 angle. The dog's silhouette and outline (excluding the new haircut's contour) must match IMAGE 1.",
     '',
-    'Do not regenerate the scene. The output must look like IMAGE 1 with only the haircut altered.',
+    '(2) BACKGROUND LOCK. The background in the output is pixel-identical to IMAGE 1: same grass, sky, ground, water, foliage, objects, lighting, color cast, depth of field, blur, and bokeh. Do not re-render or replace anything in the background.',
     '',
-    'Output the edited photograph only.',
-  ].join(' ')
+    "(3) FRAMING LOCK. The output has the same camera angle, same field of view, same crop, and same aspect ratio as IMAGE 1. The dog occupies the same region of the frame as in IMAGE 1.",
+    '',
+    "(4) IDENTITY LOCK. The dog's face, eyes, nose, mouth, expression, ears, markings, body proportions, breed, and coat color (unless the cut explicitly involves dye) match IMAGE 1 exactly. This must look like the SAME dog as IMAGE 1 — not a different dog.",
+    '',
+    'WHAT TO TAKE FROM IMAGE 2: ONLY the haircut shape — coat length, sculpted volume, the way the fur is cut around the head, ears, body, legs, and tail. NEVER copy IMAGE 2\'s pose, orientation, breed, face, color, expression, framing, or background. IMAGE 2 is a STYLE reference only; nothing else from it transfers.',
+    '',
+    'The output must read as IMAGE 1 with the coat re-cut, not as a new photograph. Output the edited photograph only.',
+  ].join('\n')
 }
 
 async function main() {
