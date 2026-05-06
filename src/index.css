@@ -296,3 +296,25 @@ button, a {
   z-index: -1;
   pointer-events: none;
 }
+
+/* Scissor confetti — gentle continuous rain across the generating screen.
+   Each scissor sets its own --dur, --delay, --drift, --spin via inline
+   style so the field reads as random, not a synchronized animation. */
+@keyframes scissor-fall {
+  0%   { transform: translate3d(0, -12%, 0) rotate(0deg); opacity: 0; }
+  8%   { opacity: 0.9; }
+  92%  { opacity: 0.9; }
+  100% { transform: translate3d(var(--drift, 0px), 112%, 0) rotate(var(--spin, 540deg)); opacity: 0; }
+}
+.scissor-rain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.scissor-rain > * {
+  position: absolute;
+  top: 0;
+  animation: scissor-fall var(--dur, 5s) linear var(--delay, 0s) infinite;
+  will-change: transform;
+}

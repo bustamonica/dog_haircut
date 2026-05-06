@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ScreenContainer, Wordmark } from '../components/ui'
 import { DogPortrait } from '../components/DogPortrait'
 import { StyledPhoto } from '../components/StyledPhoto'
+import { ScissorRain } from '../components/ScissorRain'
 import { STYLES_BY_ID } from '../data/styles'
 import { finishGeneration, getState, useStore } from '../state/store'
 import { REAL_GENERATION_ENABLED, buildEditInstruction, generateImage } from '../services/generate'
@@ -118,13 +119,16 @@ export function Generating() {
 
   return (
     <ScreenContainer>
-      <div className="flex flex-col h-full bg-bone">
-        <div className="flex items-center justify-between px-5 pt-6">
+      <div className="flex flex-col h-full bg-bone relative">
+        {/* Scissor confetti rains across the full screen behind the content */}
+        <ScissorRain brand={style.brand} />
+
+        <div className="flex items-center justify-between px-5 pt-6 relative">
           <Wordmark />
           {getState().isPro && <span className="chip chip-dark text-[10px] uppercase tracking-widest">priority queue</span>}
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center relative">
           <div className="relative w-full max-w-xs aspect-square rounded-3xl overflow-hidden sticker grain">
             <div className="absolute inset-0 morph-stack">
               {dog?.photo && dog.photo !== '__demo__' ? (
@@ -167,7 +171,7 @@ export function Generating() {
           </div>
         </div>
 
-        <div className="px-5 pb-8 pt-4 text-center">
+        <div className="px-5 pb-8 pt-4 text-center relative">
           <p className="text-[11px] text-ink/45">
             {REAL_GENERATION_ENABLED
               ? 'Live edit via Gemini 2.5 Flash Image.'
