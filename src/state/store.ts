@@ -51,21 +51,116 @@ type State = {
   activeGenerationId: string | null
 }
 
-let state: State = {
-  screen: 'splash',
-  stack: [],
-  dog: null,
-  generations: [],
-  isPro: false,
-  freeGenUsed: false,
-  pendingStyleId: null,
-  activeGenerationId: null,
+// localStorage persistence ----------------------------------------------------
+//
+// The persisted slice excludes nav state (screen/stack) and any in-flight
+// generation pointers — those are session-local. On hydrate, we route to the
+// "returning user" landing screen (profile) when a dog already exists,
+// matching the design doc's returning-user flow.
+//
+// Photos and generation outputs are data URLs, so the persisted blob can grow
+// quickly. localStorage caps at ~5MB per origin; if we exceed that we drop the
+// oldest generation and retry. No quota is hit when the user only has a
+// handful of generations, which is the common case.
+const STORAGE_KEY = 'coif/v1'
+const SCHEMA_VERSION = 1
+
+type Persisted = {
+  v: number
+  dog: DogProfile | null
+  generations: Generation[]
+  isPro: boolean
+  freeGenUsed: boolean
+  activeGenerationId: string | null
 }
 
+function hasLocalStorage(): boolean {
+  try {
+    return typeof localStorage !== 'undefined'
+  } catch {
+    return false
+  }
+}
+
+function loadPersisted(): Persisted | null {
+  if (!hasLocalStorage()) return null
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Persisted
+    if (parsed?.v !== SCHEMA_VERSION) return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function savePersisted(s: State) {
+  if (!hasLocalStorage()) return
+  // Snapshot only the durable slice. Trim oldest generations on quota.
+  const snapshot: Persisted = {
+    v: SCHEMA_VERSION,
+    dog: s.dog,
+    generations: s.generations,
+    isPro: s.isPro,
+    freeGenUsed: s.freeGenUsed,
+    activeGenerationId: s.activeGenerationId,
+  }
+  for (let attempt = 0; attempt < 12; attempt++) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot))
+      return
+    } catch {
+      if (snapshot.generations.length === 0) {
+        // Even an empty array won't fit — give up silently.
+        return
+      }
+      // Drop the oldest (newest is at index 0).
+      snapshot.generations = snapshot.generations.slice(0, -1)
+    }
+  }
+}
+
+function clearPersisted() {
+  if (!hasLocalStorage()) return
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // ignore
+  }
+}
+
+function initialState(): State {
+  const persisted = loadPersisted()
+  const dog = persisted?.dog ?? null
+  return {
+    screen: dog ? 'profile' : 'splash',
+    stack: [],
+    dog,
+    generations: persisted?.generations ?? [],
+    isPro: persisted?.isPro ?? false,
+    freeGenUsed: persisted?.freeGenUsed ?? false,
+    pendingStyleId: null,
+    activeGenerationId: persisted?.activeGenerationId ?? null,
+  }
+}
+
+let state: State = initialState()
+
 const listeners = new Set<() => void>()
+let saveTimer: ReturnType<typeof setTimeout> | null = null
 
 function emit() {
   for (const l of listeners) l()
+  // Debounce localStorage writes — coalesces rapid state updates (a single
+  // generation triggers a few setStates in quick succession). 60ms is well
+  // below human-perceptible latency and avoids burning main-thread time on
+  // duplicate JSON.stringify of the photo data URLs.
+  if (saveTimer) clearTimeout(saveTimer)
+  saveTimer = setTimeout(() => {
+    saveTimer = null
+    savePersisted(state)
+  }, 60)
 }
 
 export function getState() {
@@ -91,6 +186,7 @@ export function back() {
 }
 
 export function reset() {
+  clearPersisted()
   state = {
     screen: 'splash',
     stack: [],
