@@ -179,12 +179,12 @@ function PromptDetails({ prompt }: { prompt: string }) {
 }
 
 function Survey() {
-  const [picked, setPicked] = useState<'yes' | 'kinda' | 'no' | null>(null)
+  const [picked, setPicked] = useState<'love' | 'pass' | null>(null)
   return (
     <div className="rounded-2xl bg-cream border border-ink/5 p-4">
-      <p className="text-xs font-semibold tracking-tight mb-2">Looks like your dog?</p>
-      <div className="grid grid-cols-3 gap-2">
-        {(['yes', 'kinda', 'no'] as const).map(v => (
+      <p className="text-xs font-semibold tracking-tight mb-2">Like this look?</p>
+      <div className="grid grid-cols-2 gap-2">
+        {(['love', 'pass'] as const).map(v => (
           <button
             key={v}
             onClick={() => setPicked(v)}
@@ -192,12 +192,12 @@ function Survey() {
               picked === v ? 'bg-ink text-cream' : 'bg-ink/5 text-ink'
             }`}
           >
-            {v === 'yes' ? "That's him" : v === 'kinda' ? 'Kinda' : 'Not at all'}
+            {v === 'love' ? 'Love it' : 'Pass'}
           </button>
         ))}
       </div>
-      {picked === 'no' && (
-        <p className="text-[11px] text-ink/55 mt-2">Logged. We'll regen with stricter identity preservation next time.</p>
+      {picked === 'pass' && (
+        <p className="text-[11px] text-ink/55 mt-2">Noted. We'll bias away from this style for your dog next time.</p>
       )}
     </div>
   )
