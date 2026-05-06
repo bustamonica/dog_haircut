@@ -316,3 +316,34 @@ export const STYLES: Style[] = [
 export const STYLES_BY_ID: Record<string, Style> = Object.fromEntries(
   STYLES.map(s => [s.id, s]),
 )
+
+/**
+ * Curated "wow" pool — visually distinctive cuts that read well as a
+ * before/after surprise. Used by the auto-pick logic for the free first gen
+ * AND for every Pro re-roll. Order is roughly best-first; randomization
+ * picks from this pool excluding any styles the user has already seen.
+ */
+const WOW_STYLE_IDS = [
+  'lion-cut',
+  'mohawk',
+  'continental',
+  'main-character',
+  'powder-puff',
+  '70s-rockstar',
+  'summer-shave',
+  'rugrat',
+  'bouncer',
+  'astroturf',
+  'sad-prince',
+  'witness-protection',
+  'father-figure',
+] as const
+
+export function pickWowStyle(seenStyleIds: string[] = []): Style {
+  const seen = new Set(seenStyleIds)
+  const unseen = WOW_STYLE_IDS.filter(id => !seen.has(id))
+  // If the user has somehow seen all wow styles, allow repeats.
+  const pool = unseen.length > 0 ? unseen : WOW_STYLE_IDS
+  const id = pool[Math.floor(Math.random() * pool.length)]
+  return STYLES_BY_ID[id]
+}

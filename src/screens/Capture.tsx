@@ -1,15 +1,16 @@
 import { useRef, useState } from 'react'
 import { BackButton, Button, ScreenContainer, Scroll, TopBar } from '../components/ui'
 import { DogPortrait } from '../components/DogPortrait'
-import { back, navigate, setState } from '../state/store'
+import { pickWowStyle } from '../data/styles'
+import { back, setState, startGeneration } from '../state/store'
 
 export function Capture() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
 
   const onFile = async (file: File) => {
-    // Downscale to keep request bodies under Replicate's limits and to
-    // speed up generation. 1024px on the long edge is plenty for img2img.
+    // Downscale to keep request bodies under the API's limits and to speed
+    // up generation. 1024px on the long edge is plenty for img2img.
     const downscaled = await downscaleToDataUrl(file, 1024, 0.9)
     setPreview(downscaled)
   }
@@ -21,12 +22,12 @@ export function Capture() {
   const onContinue = () => {
     setState({
       dog: {
-        breedId: 'goldendoodle', // tentative; user picks on next screen
         photo: preview,
         createdAt: Date.now(),
       },
     })
-    navigate('breed')
+    // No breed step, no style picker — straight into the auto-picked gen.
+    startGeneration(pickWowStyle().id)
   }
 
   return (

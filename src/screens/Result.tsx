@@ -3,8 +3,8 @@ import { BackButton, Button, ScreenContainer, Scroll, TopBar } from '../componen
 import { MorphVideo } from '../components/MorphVideo'
 import { DogPortrait } from '../components/DogPortrait'
 import { StyledPhoto } from '../components/StyledPhoto'
-import { STYLES_BY_ID } from '../data/styles'
-import { back, navigate, toggleSave, useStore } from '../state/store'
+import { STYLES_BY_ID, pickWowStyle } from '../data/styles'
+import { back, navigate, startGeneration, toggleSave, useStore } from '../state/store'
 import { ShareSheet } from '../components/ShareSheet'
 
 export function Result() {
@@ -19,6 +19,15 @@ export function Result() {
   if (!gen) return null
   const style = STYLES_BY_ID[gen.styleId]
   const beforePhoto = gen.sourcePhoto
+
+  const onReroll = () => {
+    if (!isPro) {
+      navigate('paywall')
+      return
+    }
+    const seen = generations.map(g => g.styleId)
+    startGeneration(pickWowStyle(seen).id)
+  }
 
   return (
     <ScreenContainer>
@@ -101,11 +110,11 @@ export function Result() {
         {!isPro && (
           <div className="mt-4 rounded-2xl bg-ink p-4 text-cream">
             <div className="flex items-center justify-between mb-1">
-              <p className="font-display italic text-xl">Want to try another?</p>
+              <p className="font-display italic text-xl">Want another?</p>
               <span className="chip text-[10px] uppercase tracking-widest" style={{ background: 'rgba(255,255,255,0.12)', color: '#FAF6EE' }}>pro</span>
             </div>
             <p className="text-xs text-cream/75 leading-relaxed mb-3">
-              Free is one auto-pick generation. Browse the library, save styles, drop the watermark — that's Pro.
+              Free is one auto-pick. Pro re-rolls forever, drops the watermark, exports a groomer card. $4.99/mo.
             </p>
             <Button variant="pro" className="w-full" onClick={() => navigate('paywall')}>
               See Pro — $4.99/mo
@@ -115,26 +124,36 @@ export function Result() {
       </Scroll>
 
       {/* Sticky action bar */}
-      <div className="px-5 pb-6 pt-3 border-t border-ink/5 bg-cream flex gap-2">
+      <div className="px-5 pb-6 pt-3 border-t border-ink/5 bg-cream flex flex-col gap-2">
         <Button
-          variant={gen.savedToBoard ? 'primary' : 'secondary'}
-          className="flex-1"
-          onClick={() => {
-            if (!isPro && freeGenUsed) {
-              navigate('paywall')
-              return
-            }
-            toggleSave(gen.id)
-          }}
+          variant="pro"
+          className="w-full"
+          onClick={onReroll}
         >
-          {gen.savedToBoard ? '✓ Saved' : 'Save to Board'}
+          <RerollIcon /> {isPro ? 'Re-roll the look' : 'Re-roll · Pro'}
         </Button>
-        <Button
-          className="flex-1"
-          onClick={() => setShowShare(true)}
-        >
-          <ShareIcon /> Share
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant={gen.savedToBoard ? 'primary' : 'secondary'}
+            className="flex-1"
+            onClick={() => {
+              if (!isPro && freeGenUsed) {
+                navigate('paywall')
+                return
+              }
+              toggleSave(gen.id)
+            }}
+          >
+            {gen.savedToBoard ? '✓ Saved' : 'Save to Board'}
+          </Button>
+          <Button
+            variant="secondary"
+            className="flex-1"
+            onClick={() => setShowShare(true)}
+          >
+            <ShareIcon /> Share
+          </Button>
+        </div>
       </div>
 
       {showShare && (
@@ -242,7 +261,16 @@ function CompareView({
 function ShareIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M8 1.5v8.5M5.5 4 8 1.5 10.5 4M3 8.5v4a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5v-4" stroke="#FAF6EE" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8 1.5v8.5M5.5 4 8 1.5 10.5 4M3 8.5v4a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5v-4" stroke="#1A1815" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function RerollIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M3 6a5 5 0 0 1 9-2M13 10a5 5 0 0 1-9 2" stroke="#FAF6EE" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M12 1.5V4h-2.5M4 14.5V12h2.5" stroke="#FAF6EE" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }

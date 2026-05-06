@@ -160,8 +160,6 @@ function buildReferencePrompt(style: Style): string {
 export type GenerateInput = {
   photo: string
   style: Style
-  breedId: string
-  customBreedName?: string
   signal?: AbortSignal
 }
 

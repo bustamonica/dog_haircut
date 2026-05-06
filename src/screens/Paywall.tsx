@@ -7,7 +7,7 @@ export function Paywall() {
 
   const onPurchase = () => {
     upgradeToPro()
-    navigate('library')
+    navigate('profile')
   }
 
   return (
@@ -43,8 +43,7 @@ export function Paywall() {
         <div className="mt-6 rounded-2xl bg-cream border border-ink/5 p-5">
           <p className="text-xs uppercase tracking-widest text-ink/45 mb-3">What's in it</p>
           <ul className="space-y-2.5">
-            <Feature title="Unlimited generations" sub="The library, on tap." />
-            <Feature title="Full style library" sub="Including monthly drops + designer collabs." />
+            <Feature title="Unlimited re-rolls" sub="Free is one auto-pick. Pro re-rolls forever." />
             <Feature title="No watermark, higher res" sub="Your share, your face on it." />
             <Feature title='"Show this to my groomer" card' sub="Photo brief + the technical request, exportable." />
             <Feature title="Priority queue" sub="Sub-15s hot path." />

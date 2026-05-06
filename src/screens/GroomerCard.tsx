@@ -1,10 +1,9 @@
 import { BackButton, Button, ScreenContainer, Scroll, TopBar } from '../components/ui'
-import { BottomNav } from './Library'
+import { BottomNav } from '../components/BottomNav'
 import { DogPortrait } from '../components/DogPortrait'
 import { StyledPhoto } from '../components/StyledPhoto'
-import { BREEDS } from '../data/breeds'
-import { STYLES_BY_ID } from '../data/styles'
-import { back, navigate, useStore } from '../state/store'
+import { STYLES_BY_ID, pickWowStyle } from '../data/styles'
+import { back, navigate, startGeneration, useStore } from '../state/store'
 
 export function GroomerCard() {
   const dog = useStore(s => s.dog)
@@ -13,7 +12,15 @@ export function GroomerCard() {
   const saved = generations.filter(g => g.savedToBoard)
 
   if (!dog) return null
-  const breed = BREEDS.find(b => b.id === dog.breedId)
+
+  const onReroll = () => {
+    if (!isPro) {
+      navigate('paywall')
+      return
+    }
+    const seen = generations.map(g => g.styleId)
+    startGeneration(pickWowStyle(seen).id)
+  }
 
   return (
     <ScreenContainer>
@@ -28,10 +35,10 @@ export function GroomerCard() {
         </p>
 
         {saved.length === 0 ? (
-          <EmptyState />
+          <EmptyState onReroll={onReroll} isPro={isPro} />
         ) : (
           <div className="space-y-4">
-            <BoardHeader breed={dog.customBreedName ?? breed?.name ?? ''} />
+            <BoardHeader />
             {saved.map((g, i) => {
               const style = STYLES_BY_ID[g.styleId]
               return (
@@ -97,30 +104,30 @@ export function GroomerCard() {
   )
 }
 
-function BoardHeader({ breed }: { breed: string }) {
+function BoardHeader() {
   return (
     <div className="rounded-2xl bg-ink text-cream p-5 relative overflow-hidden">
       <div className="absolute inset-0 dot-pattern opacity-[0.07]" />
       <div className="relative">
         <p className="text-[10px] uppercase tracking-widest text-cream/60">For the groomer</p>
-        <p className="font-display italic text-3xl mt-1">{breed}</p>
+        <p className="font-display italic text-3xl mt-1">Reference looks</p>
         <p className="text-[11px] text-cream/55 mt-3 leading-relaxed max-w-[34ch]">
-          Reference looks below. Ask before deviating. Your call on what's safe for the coat.
+          Saved from the app. Ask before deviating. Your call on what's safe for the coat.
         </p>
       </div>
     </div>
   )
 }
 
-function EmptyState() {
+function EmptyState({ onReroll, isPro }: { onReroll: () => void; isPro: boolean }) {
   return (
     <div className="rounded-2xl bg-ink/5 p-6 text-center">
       <p className="font-display italic text-2xl">Empty board.</p>
       <p className="text-xs text-ink/55 mt-1 leading-relaxed">
         Save a look from the result screen and it'll show up here.
       </p>
-      <Button className="mt-4" variant="secondary" onClick={() => navigate('library')}>
-        Browse styles
+      <Button className="mt-4" onClick={onReroll}>
+        {isPro ? 'Re-roll a look' : 'Re-roll · Pro'}
       </Button>
     </div>
   )

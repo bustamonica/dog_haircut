@@ -59,8 +59,6 @@ export function Generating() {
         const res = await generateImage({
           photo,
           style,
-          breedId: dog.breedId,
-          customBreedName: dog.customBreedName,
           signal: controller.signal,
         })
         if (cancelled) return

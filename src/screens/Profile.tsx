@@ -1,9 +1,8 @@
 import { BackButton, ScreenContainer, Scroll, TopBar, Button } from '../components/ui'
-import { BottomNav } from './Library'
+import { BottomNav } from '../components/BottomNav'
 import { DogPortrait } from '../components/DogPortrait'
-import { BREEDS } from '../data/breeds'
-import { STYLES_BY_ID } from '../data/styles'
-import { back, navigate, setState, useStore } from '../state/store'
+import { STYLES_BY_ID, pickWowStyle } from '../data/styles'
+import { back, navigate, setState, startGeneration, useStore } from '../state/store'
 import { StyledPhoto } from '../components/StyledPhoto'
 
 export function Profile() {
@@ -12,7 +11,15 @@ export function Profile() {
   const isPro = useStore(s => s.isPro)
 
   if (!dog) return null
-  const breed = BREEDS.find(b => b.id === dog.breedId)
+
+  const onReroll = () => {
+    if (!isPro) {
+      navigate('paywall')
+      return
+    }
+    const seen = generations.map(g => g.styleId)
+    startGeneration(pickWowStyle(seen).id)
+  }
 
   return (
     <ScreenContainer>
@@ -34,9 +41,8 @@ export function Profile() {
             )}
           </div>
           <div className="flex-1 pb-1">
-            <h1 className="font-display text-3xl tracking-tight">{dog.customBreedName ?? breed?.name}</h1>
-            <p className="text-sm text-ink/60">{breed?.coatHint}</p>
-            <div className="flex items-center gap-1.5 mt-1.5">
+            <h1 className="font-display text-3xl tracking-tight">Your dog</h1>
+            <div className="flex items-center gap-1.5 mt-2">
               {isPro ? (
                 <span className="chip chip-dark text-[10px] uppercase tracking-widest">pro</span>
               ) : (
@@ -48,8 +54,8 @@ export function Profile() {
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-2">
-          <Button variant="secondary" onClick={() => navigate('library')}>
-            Try a style
+          <Button variant="primary" onClick={onReroll}>
+            {isPro ? 'Re-roll' : 'Re-roll · Pro'}
           </Button>
           <Button variant="secondary" onClick={() => navigate('groomer-card')}>
             Groomer card
@@ -58,7 +64,7 @@ export function Profile() {
 
         <h2 className="text-[11px] uppercase tracking-widest text-ink/45 mt-8 mb-3">Generations</h2>
         {generations.length === 0 ? (
-          <p className="text-sm text-ink/50">Nothing yet. Pick a style.</p>
+          <p className="text-sm text-ink/50">Nothing yet — tap re-roll above.</p>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {generations.map((g, i) => {

@@ -1,10 +1,8 @@
 import { Splash } from './screens/Splash'
 import { Capture } from './screens/Capture'
-import { Breed } from './screens/Breed'
 import { Generating } from './screens/Generating'
 import { Result } from './screens/Result'
 import { Paywall } from './screens/Paywall'
-import { Library } from './screens/Library'
 import { Profile } from './screens/Profile'
 import { GroomerCard } from './screens/GroomerCard'
 import { Settings } from './screens/Settings'
@@ -17,16 +15,12 @@ function App() {
       return <Splash />
     case 'capture':
       return <Capture />
-    case 'breed':
-      return <Breed />
     case 'generating':
       return <Generating />
     case 'result':
       return <Result />
     case 'paywall':
       return <Paywall />
-    case 'library':
-      return <Library />
     case 'profile':
       return <Profile />
     case 'groomer-card':
