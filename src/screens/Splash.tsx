@@ -9,9 +9,14 @@ const ROTATION = ['mohawk', 'lion-cut', 'main-character', '70s-rockstar', 'hes-j
 export function Splash() {
   const [idx, setIdx] = useState(0)
   const [hint, setHint] = useState(0)
+  const [beforeOk, setBeforeOk] = useState(true)
+  const [afterOk, setAfterOk] = useState(true)
 
   useEffect(() => {
-    const id = setInterval(() => setIdx(n => (n + 1) % ROTATION.length), 2400)
+    const id = setInterval(() => {
+      setIdx(n => (n + 1) % ROTATION.length)
+      setAfterOk(true) // give the next photo a fresh chance
+    }, 2400)
     return () => clearInterval(id)
   }, [])
 
@@ -21,10 +26,11 @@ export function Splash() {
   }, [])
 
   const style = STYLES_BY_ID[ROTATION[idx]]
+  const beforeSrc = '/splash-before.jpg'
+  const afterSrc = style.referenceImage ? `/references/${style.referenceImage}` : ''
 
   return (
     <div className="flex flex-col h-full y2k-bg relative">
-      {/* sparkles */}
       <span className="sparkle absolute top-20 left-8 text-rust" aria-hidden />
       <span className="sparkle absolute top-32 right-10 text-ember" aria-hidden style={{ animationDelay: '0.6s' }} />
       <span className="sparkle absolute bottom-32 left-12 text-ink/70" aria-hidden style={{ animationDelay: '1.2s' }} />
@@ -37,28 +43,44 @@ export function Splash() {
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 text-center relative">
         <div className="relative w-full max-w-sm aspect-square">
-          {/* brand halo behind the after card */}
           <div
             className="brand-halo"
             style={{ ['--brand' as never]: style.brand }}
           />
-          {/* Before */}
+          {/* Before — real photo if /splash-before.jpg exists, else cartoon */}
           <div
-            key={`before-${idx}`}
-            className="absolute inset-0 rounded-3xl overflow-hidden sticker animate-fade-up"
-            style={{ animationDelay: '50ms' }}
+            className="absolute inset-0 rounded-3xl overflow-hidden sticker"
           >
-            <DogPortrait baseline bgSeed={idx} />
+            {beforeOk ? (
+              <img
+                src={beforeSrc}
+                alt="Before"
+                className="w-full h-full object-cover"
+                onError={() => setBeforeOk(false)}
+              />
+            ) : (
+              <DogPortrait baseline bgSeed={idx} />
+            )}
             <div className="absolute top-3 left-3 chip">before</div>
           </div>
 
-          {/* After (peek) */}
+          {/* After — real reference photo, key forces re-render so the photo
+              actually swaps when the rotation advances */}
           <div
             key={`after-${idx}`}
             className="absolute inset-x-6 bottom-[-32px] top-[28%] rounded-3xl overflow-hidden sticker animate-fade-up rotate-2"
-            style={{ animationDelay: '200ms', transformOrigin: 'top right' }}
+            style={{ animationDelay: '120ms', transformOrigin: 'top right' }}
           >
-            <DogPortrait style={style} bgSeed={idx + 1} />
+            {afterOk && afterSrc ? (
+              <img
+                src={afterSrc}
+                alt={style.name}
+                className="w-full h-full object-cover"
+                onError={() => setAfterOk(false)}
+              />
+            ) : (
+              <DogPortrait style={style} bgSeed={idx + 1} />
+            )}
             <div
               className="absolute top-3 right-3 chip text-[10px] font-semibold uppercase tracking-widest"
               style={{ background: style.brand, color: '#1A1815' }}
@@ -99,3 +121,4 @@ const HINTS = [
   'No, we are not also doing cats.',
   'Built for the dog. Hostile to the algorithm.',
 ]
+
