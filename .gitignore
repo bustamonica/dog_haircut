@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Newsletter agent — generated agent IDs and per-run output
+.newsletter-agents.json
+newsletter-*.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

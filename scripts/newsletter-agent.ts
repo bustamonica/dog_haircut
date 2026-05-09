@@ -1,24 +1,30 @@
 /**
- * Newsletter generator using multi-agent orchestration.
+ * Chelsea Dispatch newsletter — runtime using Anthropic Managed Agents.
  *
- * Architecture:
- *   Orchestrator (claude-opus-4-7) coordinates via tool use:
- *     ├── Researcher sub-agent  → talking points and facts
- *     ├── Writer sub-agent      → full newsletter draft in Markdown
- *     └── Editor sub-agent      → polished, publication-ready output
+ * Each invocation creates a new Session against the persistent coordinator
+ * agent that was created by `npm run newsletter:setup`.
  *
- * Prompt caching is applied to all system prompts (stable across runs).
- * Anthropic's minimum cacheable prefix is 4 096 tokens for Opus 4.7;
- * extend the prompts with Chelsea-specific reference material in production
- * to consistently exceed that threshold and benefit from cache reads.
+ * Architecture (true multi-agent — each is a real server-side agent with
+ * its own thread, context window, and conversation history):
+ *
+ *   Coordinator (multiagent: coordinator)
+ *     ├── Researcher subagent  → own thread; web_search + web_fetch
+ *     ├── Writer subagent      → own thread
+ *     └── Editor subagent      → own thread
+ *
+ * The coordinator delegates real work to subagents — it sees thread events
+ * (created, message_sent, message_received, status_idle, …) and the final
+ * polished newsletter is written to /mnt/session/outputs/newsletter.md
+ * inside the session container, then downloaded via the Files API.
  *
  * Usage:
- *   ANTHROPIC_API_KEY=sk-ant-... npx tsx scripts/newsletter-agent.ts [topic]
- *   npm run newsletter -- "New gallery openings in Chelsea this fall"
+ *   npm run newsletter:setup       # one-time, creates the agents
+ *   npm run newsletter             # default topic
+ *   npm run newsletter -- "..."    # custom topic
  */
 
 import Anthropic from '@anthropic-ai/sdk'
-import { writeFileSync } from 'fs'
+import { readFileSync, writeFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
@@ -28,267 +34,151 @@ dotenv.config({ path: '.env.local' })
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const client = new Anthropic()
 
-// ---------------------------------------------------------------------------
-// System prompts  (stable — cache_control marks them for server-side caching)
-// ---------------------------------------------------------------------------
-
-const RESEARCHER_SYSTEM = `\
-You are the research specialist for "Chelsea Dispatch", a neighborhood newsletter about Chelsea, NYC.
-Chelsea spans roughly 14th to 30th Street on the west side of Manhattan.
-It is known for: the High Line, the Chelsea Market, one of the world's densest gallery districts,
-Hudson Yards, the Meatpacking District border, Hell's Kitchen border, diverse dining, and a
-vibrant LGBTQ+ community.
-
-For the given topic, produce a structured brief covering:
-- 3–5 key talking points relevant to Chelsea residents and visitors
-- 2–3 specific facts, venues, or local details that ground the piece in the neighborhood
-- Any seasonal angle, upcoming events, or current local trends
-- Connections to adjacent topics that Chelsea readers would care about
-
-Keep each point concise. Use a bulleted format. Prioritize specificity — name real streets,
-venues, and landmarks where relevant.`
-
-const WRITER_SYSTEM = `\
-You are the lead writer for "Chelsea Dispatch", a neighborhood newsletter covering Chelsea, NYC.
-Voice: insider, curious, warm — the kind of neighbor who always knows what's happening and
-loves sharing it. Not a tourist guide, not a press release. Written for people who live or
-work in Chelsea.
-
-Given a research brief and topic, write a newsletter edition with:
-1. A subject/teaser line (prefix with "Subject: ")
-2. A brief, punchy opening (1–2 sentences, no generic greeting)
-3. Two or three content sections with specific, Chelsea-rooted subheadings and 2–3 paragraphs each
-4. A short "This week in Chelsea" sign-off with one local tip or recommendation
-
-Use clean Markdown. ## for section headings. Target 400–600 words total.
-Be specific — streets, cross streets, venue names, real details.`
-
-const EDITOR_SYSTEM = `\
-You are the editor of "Chelsea Dispatch", a neighborhood newsletter about Chelsea, NYC.
-Take a newsletter draft and return the publication-ready final version.
-
-Check for:
-- Consistent insider, neighborhood voice (not tourist-y, not corporate)
-- Specific local details — vague references to "the neighborhood" should be replaced with
-  actual street names, venue names, or Chelsea landmarks
-- Clear structure: opening → content sections → sign-off
-- Subject line appeal — would a Chelsea resident open this email?
-- Grammar, spelling, punctuation
-- Proper Markdown: # for title, ## for sections, **bold** for key terms
-
-Return ONLY the polished newsletter in Markdown, starting with a # title line.
-Do not add commentary or explain your edits.`
-
-const ORCHESTRATOR_SYSTEM = `\
-You are the production manager for "Chelsea Dispatch", a neighborhood newsletter about Chelsea, NYC.
-You coordinate specialists to produce each edition.
-
-Follow these steps in order every time — never skip or combine steps:
-1. Call research_topic with the edition topic.
-2. Call write_newsletter with the topic and the research result.
-3. Call edit_newsletter with the draft from the writer.
-4. Call publish_newsletter with the polished newsletter from the editor.`
-
-// ---------------------------------------------------------------------------
-// Sub-agent helpers
-// ---------------------------------------------------------------------------
-
-function extractText(content: Anthropic.ContentBlock[]): string {
-  return content
-    .flatMap((b) => (b.type === 'text' ? [b.text] : []))
-    .join('\n')
+interface AgentConfig {
+  environment_id: string
+  coordinator_id: string
+  researcher_id: string
+  writer_id: string
+  editor_id: string
+  created_at: string
 }
 
-async function researchTopic(topic: string): Promise<string> {
-  console.log(`  [Researcher] Researching "${topic}"…`)
-  const res = await client.messages.create({
-    model: 'claude-opus-4-7',
-    max_tokens: 1024,
-    system: [
-      { type: 'text', text: RESEARCHER_SYSTEM, cache_control: { type: 'ephemeral' } },
-    ],
-    messages: [{ role: 'user', content: `Topic: ${topic}` }],
-  })
-  return extractText(res.content)
+function loadConfig(): AgentConfig {
+  const configPath = join(__dirname, '..', '.newsletter-agents.json')
+  try {
+    const raw = readFileSync(configPath, 'utf-8')
+    return JSON.parse(raw) as AgentConfig
+  } catch {
+    console.error('Error: .newsletter-agents.json not found.')
+    console.error('Run `npm run newsletter:setup` first to create the agents.')
+    process.exit(1)
+  }
 }
 
-async function writeNewsletter(topic: string, research: string): Promise<string> {
-  console.log(`  [Writer] Drafting newsletter…`)
-  const res = await client.messages.create({
-    model: 'claude-opus-4-7',
-    max_tokens: 2048,
-    system: [
-      { type: 'text', text: WRITER_SYSTEM, cache_control: { type: 'ephemeral' } },
-    ],
-    messages: [
-      {
-        role: 'user',
-        content: `Topic: ${topic}\n\nResearch brief:\n${research}\n\nWrite the newsletter.`,
-      },
-    ],
-  })
-  return extractText(res.content)
+// Some thread/multiagent event fields aren't fully typed in the SDK yet.
+// This narrow accessor keeps the logging code honest while we wait.
+function fieldOf(event: unknown, key: string): string | undefined {
+  const v = (event as Record<string, unknown>)[key]
+  return typeof v === 'string' ? v : undefined
 }
 
-async function editNewsletter(draft: string): Promise<string> {
-  console.log(`  [Editor] Polishing draft…`)
-  const res = await client.messages.create({
-    model: 'claude-opus-4-7',
-    max_tokens: 2048,
-    system: [
-      { type: 'text', text: EDITOR_SYSTEM, cache_control: { type: 'ephemeral' } },
-    ],
-    messages: [{ role: 'user', content: `Edit this newsletter draft:\n\n${draft}` }],
-  })
-  return extractText(res.content)
-}
-
-// ---------------------------------------------------------------------------
-// Tool definitions for the orchestrator
-// ---------------------------------------------------------------------------
-
-const TOOLS: Anthropic.Tool[] = [
-  {
-    name: 'research_topic',
-    description:
-      'Delegate research to the researcher sub-agent. Returns a structured brief with key points and facts.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        topic: { type: 'string', description: 'The newsletter topic or theme to research' },
-      },
-      required: ['topic'],
-    },
-  },
-  {
-    name: 'write_newsletter',
-    description:
-      'Delegate writing to the writer sub-agent. Returns a full newsletter draft in Markdown.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        topic: { type: 'string', description: 'The newsletter topic' },
-        research: { type: 'string', description: 'Research brief from the researcher' },
-      },
-      required: ['topic', 'research'],
-    },
-  },
-  {
-    name: 'edit_newsletter',
-    description:
-      'Delegate editing to the editor sub-agent. Returns the polished, publication-ready newsletter.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        draft: { type: 'string', description: 'The newsletter draft to edit' },
-      },
-      required: ['draft'],
-    },
-  },
-  {
-    name: 'publish_newsletter',
-    description: 'Mark the newsletter as complete. Call this last with the final edited newsletter.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        newsletter: {
-          type: 'string',
-          description: 'The final edited newsletter in Markdown',
-        },
-      },
-      required: ['newsletter'],
-    },
-  },
-]
-
-// ---------------------------------------------------------------------------
-// Orchestrator agentic loop
-// ---------------------------------------------------------------------------
-
-async function produce(topic: string): Promise<string> {
+async function produceNewsletter(topic: string, config: AgentConfig): Promise<string> {
   console.log(`\n🗽 Producing Chelsea Dispatch: "${topic}"\n`)
 
-  const messages: Anthropic.MessageParam[] = [
-    { role: 'user', content: `Produce a newsletter edition about: ${topic}` },
-  ]
+  // 1. Create the session against the coordinator
+  const session = await client.beta.sessions.create({
+    agent: config.coordinator_id,
+    environment_id: config.environment_id,
+    title: `Chelsea Dispatch: ${topic}`,
+  })
+  console.log(`📍 Session: ${session.id}`)
 
-  let finalNewsletter = ''
+  // 2. Open the stream FIRST (stream-first ordering — events emitted before
+  //    we attach are lost). See shared/managed-agents-events.md.
+  const stream = await client.beta.sessions.events.stream(session.id)
 
-  while (true) {
-    const response = await client.messages.create({
-      model: 'claude-opus-4-7',
-      max_tokens: 4096,
-      thinking: { type: 'adaptive' },
-      system: [
-        { type: 'text', text: ORCHESTRATOR_SYSTEM, cache_control: { type: 'ephemeral' } },
-      ],
-      tools: TOOLS,
-      messages,
-    })
+  // 3. Send the kickoff message
+  await client.beta.sessions.events.send(session.id, {
+    events: [
+      {
+        type: 'user.message',
+        content: [
+          {
+            type: 'text',
+            text:
+              `Produce a Chelsea Dispatch newsletter edition about: ${topic}.\n\n` +
+              `Use your team (researcher → writer → editor) and write the final ` +
+              `polished newsletter to /mnt/session/outputs/newsletter.md`,
+          },
+        ],
+      },
+    ],
+  })
 
-    // Preserve the full content (including thinking blocks) for next turn
-    messages.push({ role: 'assistant', content: response.content })
-
-    if (response.stop_reason === 'end_turn') break
-    if (response.stop_reason !== 'tool_use') break
-
-    const toolResults: Anthropic.ToolResultBlockParam[] = []
-
-    for (const block of response.content) {
-      if (block.type !== 'tool_use') continue
-
-      console.log(`\n📋 Orchestrator → ${block.name}`)
-      const input = block.input as Record<string, string>
-      let result: string
-
-      try {
-        switch (block.name) {
-          case 'research_topic':
-            result = await researchTopic(input.topic)
-            break
-          case 'write_newsletter':
-            result = await writeNewsletter(input.topic, input.research)
-            break
-          case 'edit_newsletter':
-            result = await editNewsletter(input.draft)
-            break
-          case 'publish_newsletter':
-            finalNewsletter = input.newsletter
-            result = '✅ Newsletter published.'
-            console.log('\n✅ Newsletter complete.')
-            break
-          default:
-            result = `Unknown tool: ${block.name}`
+  // 4. Drain the stream until the session is truly done.
+  //    Idle-break gate per shared/managed-agents-client-patterns.md Pattern 5:
+  //    don't break on bare session.status_idle — it fires transiently.
+  for await (const event of stream) {
+    switch (event.type) {
+      case 'agent.message': {
+        const blocks = (event as { content?: Array<{ type: string; text?: string }> }).content ?? []
+        for (const block of blocks) {
+          if (block.type === 'text' && block.text) {
+            const preview = block.text.slice(0, 200)
+            const ellipsis = block.text.length > 200 ? '…' : ''
+            console.log(`💬 [coordinator] ${preview}${ellipsis}`)
+          }
         }
-      } catch (err) {
-        result = `Error: ${err instanceof Error ? err.message : String(err)}`
+        break
       }
-
-      toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: result })
+      case 'session.thread_created':
+        console.log(`🧵 [thread spawned] ${fieldOf(event, 'agent_name') ?? 'subagent'}`)
+        break
+      case 'session.thread_status_idle':
+        console.log(`💤 [thread idle] ${fieldOf(event, 'agent_name') ?? '?'}`)
+        break
+      case 'agent.thread_message_sent':
+        console.log(`➡️  [coordinator → ${fieldOf(event, 'to_agent_name') ?? 'subagent'}]`)
+        break
+      case 'agent.thread_message_received':
+        console.log(`⬅️  [${fieldOf(event, 'from_agent_name') ?? 'subagent'} → coordinator]`)
+        break
+      case 'agent.tool_use':
+        console.log(`🔧 [tool] ${fieldOf(event, 'name') ?? '?'}`)
+        break
+      case 'session.error':
+        console.error('❌ session.error:', event)
+        break
     }
 
-    messages.push({ role: 'user', content: toolResults })
+    if (event.type === 'session.status_terminated') {
+      console.log('\n⛔ Session terminated')
+      break
+    }
+    if (event.type === 'session.status_idle') {
+      const stop = (event as { stop_reason?: { type: string } }).stop_reason
+      if (stop?.type === 'requires_action') continue
+      console.log(`\n✅ Session idle (${stop?.type ?? 'unknown'})`)
+      break
+    }
   }
 
-  return finalNewsletter
-}
+  // 5. Download the newsletter file the coordinator wrote.
+  //    Brief indexing lag (~1–3s) between idle and the file appearing in
+  //    files.list — retry a few times.
+  console.log('\n📥 Looking for output file…')
+  let newsletter = ''
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, 2000))
+    const files = await client.beta.files.list({
+      scope_id: session.id,
+      betas: ['managed-agents-2026-04-01'],
+    })
+    const target = files.data.find((f) => f.filename?.endsWith('newsletter.md'))
+    if (target) {
+      const resp = await client.beta.files.download(target.id)
+      newsletter = await resp.text()
+      console.log(`   ✓ ${target.filename} (${target.size_bytes} bytes)`)
+      break
+    }
+  }
 
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
+  return newsletter
+}
 
 async function main() {
   if (!process.env.ANTHROPIC_API_KEY) {
-    console.error('Error: ANTHROPIC_API_KEY is not set.')
-    console.error('Add it to your .env.local file: ANTHROPIC_API_KEY=sk-ant-...')
+    console.error('Error: ANTHROPIC_API_KEY is not set in .env.local')
     process.exit(1)
   }
 
-  const topic = process.argv[2] ?? 'What\'s new on the High Line this season'
-  const newsletter = await produce(topic)
+  const config = loadConfig()
+  const topic = process.argv[2] ?? "What's new on the High Line this season"
+
+  const newsletter = await produceNewsletter(topic, config)
 
   if (!newsletter) {
-    console.error('\n❌ Newsletter production did not complete.')
+    console.error('\n❌ No newsletter file was produced.')
     process.exit(1)
   }
 

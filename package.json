@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "gen-refs": "tsx scripts/generate-references.ts",
     "edit": "tsx scripts/edit-haircut.ts",
+    "newsletter:setup": "tsx scripts/newsletter-setup.ts",
     "newsletter": "tsx scripts/newsletter-agent.ts"
   },
   "dependencies": {
