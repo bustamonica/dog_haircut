@@ -9,12 +9,12 @@
  *
  * Prompt caching is applied to all system prompts (stable across runs).
  * Anthropic's minimum cacheable prefix is 4 096 tokens for Opus 4.7;
- * extend the prompts with a grooming knowledge base in production to
- * consistently exceed that threshold and benefit from cache reads.
+ * extend the prompts with Chelsea-specific reference material in production
+ * to consistently exceed that threshold and benefit from cache reads.
  *
  * Usage:
  *   ANTHROPIC_API_KEY=sk-ant-... npx tsx scripts/newsletter-agent.ts [topic]
- *   npm run newsletter -- "Doodle summer cuts"
+ *   npm run newsletter -- "New gallery openings in Chelsea this fall"
  */
 
 import Anthropic from '@anthropic-ai/sdk'
@@ -33,37 +33,46 @@ const client = new Anthropic()
 // ---------------------------------------------------------------------------
 
 const RESEARCHER_SYSTEM = `\
-You are the research specialist for "The Snip & Wag Digest", a newsletter for dog owners.
-Your job is to surface accurate, interesting content about dog grooming and haircuts.
+You are the research specialist for "Chelsea Dispatch", a neighborhood newsletter about Chelsea, NYC.
+Chelsea spans roughly 14th to 30th Street on the west side of Manhattan.
+It is known for: the High Line, the Chelsea Market, one of the world's densest gallery districts,
+Hudson Yards, the Meatpacking District border, Hell's Kitchen border, diverse dining, and a
+vibrant LGBTQ+ community.
 
 For the given topic, produce a structured brief covering:
-- 3–5 key talking points (what dog owners should know)
-- 2–3 interesting facts or statistics
-- Seasonal relevance or current trends
-- Breed-specific tips where relevant
+- 3–5 key talking points relevant to Chelsea residents and visitors
+- 2–3 specific facts, venues, or local details that ground the piece in the neighborhood
+- Any seasonal angle, upcoming events, or current local trends
+- Connections to adjacent topics that Chelsea readers would care about
 
-Keep each point concise. Use a bulleted format. Focus on practical, actionable information.`
+Keep each point concise. Use a bulleted format. Prioritize specificity — name real streets,
+venues, and landmarks where relevant.`
 
 const WRITER_SYSTEM = `\
-You are the lead writer for "The Snip & Wag Digest", a warm, friendly newsletter for dog owners.
-Voice: helpful, conversational, enthusiastic — like a knowledgeable friend, not a textbook.
+You are the lead writer for "Chelsea Dispatch", a neighborhood newsletter covering Chelsea, NYC.
+Voice: insider, curious, warm — the kind of neighbor who always knows what's happening and
+loves sharing it. Not a tourist guide, not a press release. Written for people who live or
+work in Chelsea.
 
 Given a research brief and topic, write a newsletter edition with:
 1. A subject/teaser line (prefix with "Subject: ")
-2. A warm greeting ("Hi there, dog lovers!" or similar)
-3. Two or three content sections with punchy subheadings and 2–3 paragraphs each
-4. A sign-off with a grooming tip of the week
+2. A brief, punchy opening (1–2 sentences, no generic greeting)
+3. Two or three content sections with specific, Chelsea-rooted subheadings and 2–3 paragraphs each
+4. A short "This week in Chelsea" sign-off with one local tip or recommendation
 
-Use clean Markdown. ## for section headings. Target 400–600 words total.`
+Use clean Markdown. ## for section headings. Target 400–600 words total.
+Be specific — streets, cross streets, venue names, real details.`
 
 const EDITOR_SYSTEM = `\
-You are the editor of "The Snip & Wag Digest".
+You are the editor of "Chelsea Dispatch", a neighborhood newsletter about Chelsea, NYC.
 Take a newsletter draft and return the publication-ready final version.
 
 Check for:
-- Consistent warm, approachable tone
-- Clear structure: greeting → content sections → sign-off
-- Headline appeal — would a dog owner open this?
+- Consistent insider, neighborhood voice (not tourist-y, not corporate)
+- Specific local details — vague references to "the neighborhood" should be replaced with
+  actual street names, venue names, or Chelsea landmarks
+- Clear structure: opening → content sections → sign-off
+- Subject line appeal — would a Chelsea resident open this email?
 - Grammar, spelling, punctuation
 - Proper Markdown: # for title, ## for sections, **bold** for key terms
 
@@ -71,7 +80,7 @@ Return ONLY the polished newsletter in Markdown, starting with a # title line.
 Do not add commentary or explain your edits.`
 
 const ORCHESTRATOR_SYSTEM = `\
-You are the production manager for "The Snip & Wag Digest" newsletter.
+You are the production manager for "Chelsea Dispatch", a neighborhood newsletter about Chelsea, NYC.
 You coordinate specialists to produce each edition.
 
 Follow these steps in order every time — never skip or combine steps:
@@ -197,7 +206,7 @@ const TOOLS: Anthropic.Tool[] = [
 // ---------------------------------------------------------------------------
 
 async function produce(topic: string): Promise<string> {
-  console.log(`\n🐾 Producing newsletter: "${topic}"\n`)
+  console.log(`\n🗽 Producing Chelsea Dispatch: "${topic}"\n`)
 
   const messages: Anthropic.MessageParam[] = [
     { role: 'user', content: `Produce a newsletter edition about: ${topic}` },
@@ -275,7 +284,7 @@ async function main() {
     process.exit(1)
   }
 
-  const topic = process.argv[2] ?? 'Summer grooming tips for long-haired dogs'
+  const topic = process.argv[2] ?? 'What\'s new on the High Line this season'
   const newsletter = await produce(topic)
 
   if (!newsletter) {
