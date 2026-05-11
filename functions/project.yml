@@ -1,0 +1,18 @@
+# DO Functions package manifest. Used both by `doctl sls deploy` standalone
+# deploys and by App Platform's Functions component (it reads this file to
+# discover function entrypoints).
+#
+# The GEMINI_API_KEY env var is declared here as a reference — the actual
+# secret value gets injected at deploy time from the App Platform
+# component's env configuration (or, for standalone deploys, from your
+# local shell environment).
+
+packages:
+  - name: api
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    functions:
+      - name: gemini
+        runtime: nodejs:20
+        web: true
+        webSecure: false

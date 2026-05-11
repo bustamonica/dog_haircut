@@ -1,0 +1,7 @@
+{
+  "name": "gemini-proxy",
+  "version": "1.0.0",
+  "description": "Forwards /api/gemini/* to the Gemini API with the API key injected server-side.",
+  "main": "index.js",
+  "private": true
+}
