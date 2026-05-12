@@ -13,5 +13,5 @@ packages:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
     functions:
       - name: gemini
-        runtime: nodejs:20
+        runtime: nodejs:18
         web: true
