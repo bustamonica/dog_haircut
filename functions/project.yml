@@ -15,4 +15,3 @@ packages:
       - name: gemini
         runtime: nodejs:20
         web: true
-        webSecure: false
